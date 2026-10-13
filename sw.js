@@ -1,11 +1,11 @@
-const CACHE_NAME = 'dexicon-v3-online';
+const CACHE_NAME = 'dexicon-v4-png';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
   './favicon.png',
   './icon-192.png',
-  './icon-512.jpg'
+  './icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -25,7 +25,6 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // If request is external API (dummyjson, etc.), bypass cache and go straight to network
   if (!event.request.url.startsWith(self.location.origin)) {
     event.respondWith(fetch(event.request).catch(() => new Response('[]')));
     return;
