@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dexicon-scizor-v2';
+const CACHE_NAME = 'dexicon-v3-online';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -25,6 +25,12 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // If request is external API (dummyjson, etc.), bypass cache and go straight to network
+  if (!event.request.url.startsWith(self.location.origin)) {
+    event.respondWith(fetch(event.request).catch(() => new Response('[]')));
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) {
