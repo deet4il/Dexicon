@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0F1217" />
+  <title>Dexicon</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <style>
+    :root {
+      --bg: #0f1217;
+      --card-bg: #161b22;
+      --card-border: #21262d;
+      --accent-red: #ea384d;
+      --accent-blue: #388bea;
+      --accent-green: #3fb950;
+      --accent-yellow: #f1b738;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --border-subtle: #30363d;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.5rem 1rem 3rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* Pokedex Top Header */
+    .pokedex-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid var(--card-border);
+      padding-bottom: 0.85rem;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .avatar-frame {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--card-border);
+      background: #0d1117;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 8px rgba(234, 56, 77, 0.25);
+    }
+
+    .avatar-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .brand-meta {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .app-title {
+      font-family: var(--font-mono);
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--text-main);
+      line-height: 1.1;
+    }
+
+    .app-subtitle {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 3px;
+    }
+
+    .header-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.4rem;
+    }
+
+    .small-leds {
+      display: flex;
+      gap: 0.35rem;
+    }
+
+    .led {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+    .led-red { background: var(--accent-red); box-shadow: 0 0 5px var(--accent-red); }
+    .led-yellow { background: var(--accent-yellow); box-shadow: 0 0 5px var(--accent-yellow); }
+    .led-green { background: var(--accent-green); box-shadow: 0 0 5px var(--accent-green); }
+
+    .dex-id {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    /* Screen / Main Card */
+    .dex-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.1rem;
+    }
+
+    .type-badge {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      padding: 0.2rem 0.55rem;
+      border-radius: 4px;
+      background: rgba(234, 56, 77, 0.12);
+      color: var(--accent-red);
+      border: 1px solid rgba(234, 56, 77, 0.35);
+      letter-spacing: 0.05em;
+    }
+
+    .date-stamp {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .quote-content {
+      font-size: 1.15rem;
+      line-height: 1.6;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 1.1rem;
+    }
+
+    .quote-attribution {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      border-left: 2px solid var(--accent-red);
+      padding-left: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .quote-attribution .author {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .quote-context {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-style: italic;
+      line-height: 1.45;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 6px;
+      padding: 0.65rem 0.8rem;
+    }
+
+    /* Reflection Editor */
+    .journal-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .status-indicator {
+      font-size: 0.68rem;
+      color: var(--accent-green);
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    .status-indicator.visible { opacity: 1; }
+
+    textarea {
+      width: 100%;
+      height: 130px;
+      background: #0d1117;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      line-height: 1.55;
+      padding: 0.9rem;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus {
+      border-color: var(--accent-blue);
+    }
+
+    textarea::placeholder {
+      color: #484f58;
+    }
+
+    /* Controls & Footer */
+    .footer-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      border: 1px solid var(--border-subtle);
+      background: var(--card-bg);
+      color: var(--text-main);
+      padding: 0.6rem 0.95rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn:hover {
+      background: #21262d;
+    }
+
+    .history-drawer {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      margin-top: 0.5rem;
+    }
+
+    .history-item {
+      background: #11151b;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 0.9rem;
+      font-size: 0.82rem;
+    }
+
+    .history-item .hist-header {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .history-item .hist-quote {
+      font-style: italic;
+      color: #c9d1d9;
+      margin-bottom: 0.4rem;
+    }
+
+    .app-credits-footer {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: #484f58;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header class="pokedex-header">
+      <div class="header-left">
+        <div class="avatar-frame">
+          <img src="icon-192.png" alt="Dexicon Icon" />
+        </div>
+        <div class="brand-meta">
+          <div class="app-title">DEXICON</div>
+          <div class="app-subtitle">Created by DCA</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="small-leds">
+          <div class="led led-red"></div>
+          <div class="led led-yellow"></div>
+          <div class="led led-green"></div>
+        </div>
+        <div class="dex-id" id="dexId">ENTRY #---</div>
+      </div>
+    </header>
+
+    <main class="dex-card">
+      <div class="card-meta">
+        <span class="type-badge" id="quoteCategory">DISCIPLINE</span>
+        <span class="date-stamp" id="todayDate">----.--.--</span>
+      </div>
+
+      <div class="quote-content" id="quoteText">Loading entry...</div>
+
+      <div class="quote-attribution">
+        <span class="author" id="quoteAuthor">---</span><br />
+        <span id="quoteSource">---</span>
+      </div>
+
+      <div class="quote-context" id="quoteContext">---</div>
+    </main>
+
+    <section class="journal-section">
+      <div class="section-label">
+        <span>TRAINER'S LOG // TODAY</span>
+        <span class="status-indicator" id="saveStatus">SYNCED</span>
+      </div>
+      <textarea id="reflectionInput" placeholder="Record your observations, applications, or thoughts..."></textarea>
+    </section>
+
+    <div class="footer-actions">
+      <button class="btn" id="toggleHistoryBtn">View Past Logs</button>
+      <button class="btn" id="exportBtn">Export JSON</button>
+    </div>
+
+    <div class="history-drawer" id="historyDrawer" style="display: none;"></div>
+
+    <footer class="app-credits-footer">
+      Dexicon &bull; Created by DCA
+    </footer>
+  </div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(console.error);
+      });
+    }
+
+    const quotes = [
+      {
+        quote: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
+        author: "Will Durant (interpreting Aristotle)",
+        source: "The Story of Philosophy",
+        context: "Reflects the ancient concept of arete (virtue) as active training rather than theoretical belief.",
+        category: "Habit"
+      },
+      {
+        quote: "The journey of a thousand miles begins with a single step.",
+        author: "Laozi",
+        source: "Dao De Jing, Chapter 64",
+        context: "Classical Chinese philosophy on patience and the compounding power of small beginnings.",
+        category: "Momentum"
+      },
+      {
+        quote: "To everything there is a season, and a time to every purpose under the heaven.",
+        author: "Ecclesiastes 3:1",
+        source: "The Hebrew Bible / Tanakh",
+        context: "Wisdom literature acknowledging the natural rhythmic shifts between action and rest.",
+        category: "Patience"
+      },
+      {
+        quote: "You have power over your mind - not outside events. Realize this, and you will find strength.",
+        author: "Marcus Aurelius",
+        source: "Meditations, Book IV",
+        context: "Personal Stoic journal notes written on the military frontier regarding emotional sovereignty.",
+        category: "Resilience"
+      },
+      {
+        quote: "The wound is the place where the Light enters you.",
+        author: "Jalal al-Din Muhammad Rumi",
+        source: "Sufi Poetry / Masnavi",
+        context: "13th-century Persian writing framing adversity as the primary entry point for deeper wisdom.",
+        category: "Growth"
+      },
+      {
+        quote: "If you want to go fast, go alone. If you want to go far, go together.",
+        author: "Traditional Proverb",
+        source: "African Oral Tradition",
+        context: "Community-centered philosophy emphasizing collective endurance over isolated bursts of speed.",
+        category: "Harmony"
+      },
+      {
+        quote: "No man ever steps in the same river twice, for it's not the same river and he's not the same man.",
+        author: "Heraclitus",
+        source: "Presocratic Fragments",
+        context: "Highlights the universal reality of continuous inner and outer flux.",
+        category: "Change"
+      },
+      {
+        quote: "Ang hindi marunong lumingon sa pinanggalingan ay hindi makakarating sa paroroonan.",
+        author: "Traditional Proverb",
+        source: "Philippine Folk Wisdom",
+        context: "Root-awareness and gratitude as indispensable anchors before forging into unfamiliar territory.",
+        category: "Roots"
+      }
+    ];
+
+    function getTodayKey() {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    }
+
+    function getDeterministicQuote(dateStr) {
+      let hash = 0;
+      for (let i = 0; i < dateStr.length; i++) {
+        hash = (hash << 5) - hash + dateStr.charCodeAt(i);
+        hash |= 0;
+      }
+      const index = Math.abs(hash) % quotes.length;
+      return { quote: quotes[index], index: index + 1 };
+    }
+
+    const todayKey = getTodayKey();
+    const { quote: todayQuote, index: quoteNumber } = getDeterministicQuote(todayKey);
+
+    document.getElementById('dexId').textContent = `DEX ENTRY #${String(quoteNumber).padStart(3, '0')}`;
+    document.getElementById('todayDate').textContent = todayKey.replace(/-/g, '.');
+    document.getElementById('quoteCategory').textContent = todayQuote.category;
+    document.getElementById('quoteText').textContent = `"${todayQuote.quote}"`;
+    document.getElementById('quoteAuthor').textContent = todayQuote.author;
+    document.getElementById('quoteSource').textContent = todayQuote.source;
+    document.getElementById('quoteContext').textContent = todayQuote.context;
+
+    const storageKey = `dexicon_${todayKey}`;
+    const textarea = document.getElementById('reflectionInput');
+    const saveStatus = document.getElementById('saveStatus');
+
+    textarea.value = localStorage.getItem(storageKey) || '';
+
+    let timeoutId;
+    textarea.addEventListener('input', () => {
+      saveStatus.textContent = 'SAVING...';
+      saveStatus.classList.add('visible');
+      clearTimeout(timeoutId);
+
+      timeoutId = setTimeout(() => {
+        localStorage.setItem(storageKey, textarea.value);
+        saveStatus.textContent = 'SAVED';
+        setTimeout(() => saveStatus.classList.remove('visible'), 1200);
+      }, 400);
+    });
+
+    const historyBtn = document.getElementById('toggleHistoryBtn');
+    const historyDrawer = document.getElementById('historyDrawer');
+
+    historyBtn.addEventListener('click', () => {
+      if (historyDrawer.style.display === 'none') {
+        renderHistory();
+        historyDrawer.style.display = 'flex';
+        historyBtn.textContent = 'Hide Past Logs';
+      } else {
+        historyDrawer.style.display = 'none';
+        historyBtn.textContent = 'View Past Logs';
+      }
+    });
+
+    function renderHistory() {
+      historyDrawer.innerHTML = '';
+      const keys = Object.keys(localStorage)
+        .filter(k => k.startsWith('dexicon_'))
+        .sort().reverse();
+
+      if (keys.length === 0) {
+        historyDrawer.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono); padding: 0.5rem 0;">No logs found yet. Write today\'s entry above!</div>';
+        return;
+      }
+
+      keys.forEach(k => {
+        const date = k.replace('dexicon_', '');
+        const note = localStorage.getItem(k);
+        if (!note.trim()) return;
+        const { quote } = getDeterministicQuote(date);
+
+        const card = document.createElement('div');
+        card.className = 'history-item';
+        card.innerHTML = `
+          <div class="hist-header">
+            <span>${date}</span>
+            <span>${quote.author}</span>
+          </div>
+          <div class="hist-quote">"${quote.quote}"</div>
+          <div style="color:var(--text-main); white-space:pre-wrap;">${escapeHtml(note)}</div>
+        `;
+        historyDrawer.appendChild(card);
+      });
+    }
+
+    function escapeHtml(text) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      const exportData = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith('dexicon_')) {
+          exportData[key.replace('dexicon_', '')] = localStorage.getItem(key);
+        }
+      }
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dexicon-backup-${todayKey}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+</html>
