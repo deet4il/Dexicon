@@ -39,7 +39,7 @@
 
     .container {
       width: 100%;
-      max-width: 600px;
+      max-width: 650px;
       display: flex;
       flex-direction: column;
       gap: 1.25rem;
@@ -61,8 +61,8 @@
     }
 
     .avatar-frame {
-      width: 36px;
-      height: 36px;
+      width: 38px;
+      height: 38px;
       border-radius: 8px;
       overflow: hidden;
       border: 1px solid var(--card-border);
@@ -130,6 +130,33 @@
       letter-spacing: 0.05em;
     }
 
+    /* Tab Switcher */
+    .tab-bar {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 0.5rem;
+    }
+
+    .tab-btn {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: all 0.15s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--card-bg);
+      color: var(--text-main);
+      border-color: var(--border-subtle);
+    }
+
     /* Screen / Main Card */
     .dex-card {
       background: var(--card-bg);
@@ -144,19 +171,26 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 1.1rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .badge-group {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
     }
 
     .type-badge {
       font-family: var(--font-mono);
-      font-size: 0.68rem;
+      font-size: 0.65rem;
       text-transform: uppercase;
-      padding: 0.2rem 0.55rem;
+      padding: 0.18rem 0.5rem;
       border-radius: 4px;
-      background: rgba(234, 56, 77, 0.12);
-      color: var(--accent-red);
-      border: 1px solid rgba(234, 56, 77, 0.35);
       letter-spacing: 0.05em;
     }
+    .badge-phil { background: rgba(234, 56, 77, 0.15); color: var(--accent-red); border: 1px solid rgba(234, 56, 77, 0.4); }
+    .badge-region { background: rgba(56, 139, 234, 0.15); color: var(--accent-blue); border: 1px solid rgba(56, 139, 234, 0.4); }
 
     .date-stamp {
       font-family: var(--font-mono);
@@ -237,13 +271,8 @@
       transition: border-color 0.2s;
     }
 
-    textarea:focus {
-      border-color: var(--accent-blue);
-    }
-
-    textarea::placeholder {
-      color: #484f58;
-    }
+    textarea:focus { border-color: var(--accent-blue); }
+    textarea::placeholder { color: #484f58; }
 
     /* Controls & Footer */
     .footer-actions {
@@ -264,11 +293,97 @@
       cursor: pointer;
       transition: background 0.15s;
     }
+    .btn:hover { background: #21262d; }
 
-    .btn:hover {
-      background: #21262d;
+    /* Archive / Database Explorer */
+    .archive-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      background: var(--card-bg);
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
     }
 
+    .search-input {
+      width: 100%;
+      padding: 0.6rem 0.8rem;
+      background: #0d1117;
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .filters-row {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-select {
+      background: #0d1117;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      outline: none;
+    }
+
+    .archive-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    .archive-card {
+      background: #11151b;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .archive-card .author-line {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--text-main);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .archive-card .quote-body {
+      font-size: 0.92rem;
+      font-style: italic;
+      color: #c9d1d9;
+      line-height: 1.5;
+    }
+
+    .reflect-this-btn {
+      align-self: flex-start;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      padding: 0.35rem 0.65rem;
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--accent-blue);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .reflect-this-btn:hover {
+      background: rgba(56, 139, 234, 0.1);
+    }
+
+    /* History Feed */
     .history-drawer {
       display: flex;
       flex-direction: column;
@@ -333,36 +448,65 @@
       </div>
     </header>
 
-    <main class="dex-card">
-      <div class="card-meta">
-        <span class="type-badge" id="quoteCategory">DISCIPLINE</span>
-        <span class="date-stamp" id="todayDate">----.--.--</span>
+    <!-- Section Navigation -->
+    <nav class="tab-bar">
+      <button class="tab-btn active" id="tabDaily">Daily Entry</button>
+      <button class="tab-btn" id="tabCatalog">Archive Codex</button>
+    </nav>
+
+    <!-- VIEW 1: Daily Focus -->
+    <div id="viewDaily" style="display: flex; flex-direction: column; gap: 1.25rem;">
+      <main class="dex-card">
+        <div class="card-meta">
+          <div class="badge-group">
+            <span class="type-badge badge-phil" id="quotePhil">PHILOSOPHY</span>
+            <span class="type-badge badge-region" id="quoteRegion">REGION</span>
+          </div>
+          <span class="date-stamp" id="todayDate">----.--.--</span>
+        </div>
+
+        <div class="quote-content" id="quoteText">Loading entry...</div>
+
+        <div class="quote-attribution">
+          <span class="author" id="quoteAuthor">---</span><br />
+          <span id="quoteSource">---</span>
+        </div>
+
+        <div class="quote-context" id="quoteContext">---</div>
+      </main>
+
+      <section class="journal-section">
+        <div class="section-label">
+          <span>TRAINER'S LOG // TODAY</span>
+          <span class="status-indicator" id="saveStatus">SYNCED</span>
+        </div>
+        <textarea id="reflectionInput" placeholder="Record your observations, applications, or thoughts..."></textarea>
+      </section>
+
+      <div class="footer-actions">
+        <button class="btn" id="toggleHistoryBtn">View Past Logs</button>
+        <button class="btn" id="exportBtn">Export JSON</button>
       </div>
 
-      <div class="quote-content" id="quoteText">Loading entry...</div>
-
-      <div class="quote-attribution">
-        <span class="author" id="quoteAuthor">---</span><br />
-        <span id="quoteSource">---</span>
-      </div>
-
-      <div class="quote-context" id="quoteContext">---</div>
-    </main>
-
-    <section class="journal-section">
-      <div class="section-label">
-        <span>TRAINER'S LOG // TODAY</span>
-        <span class="status-indicator" id="saveStatus">SYNCED</span>
-      </div>
-      <textarea id="reflectionInput" placeholder="Record your observations, applications, or thoughts..."></textarea>
-    </section>
-
-    <div class="footer-actions">
-      <button class="btn" id="toggleHistoryBtn">View Past Logs</button>
-      <button class="btn" id="exportBtn">Export JSON</button>
+      <div class="history-drawer" id="historyDrawer" style="display: none;"></div>
     </div>
 
-    <div class="history-drawer" id="historyDrawer" style="display: none;"></div>
+    <!-- VIEW 2: Archive / Database Catalog -->
+    <div id="viewCatalog" style="display: none; flex-direction: column; gap: 1rem;">
+      <div class="archive-controls">
+        <input type="text" id="archiveSearch" class="search-input" placeholder="Search author, keyword, or text..." />
+        <div class="filters-row">
+          <select id="regionFilter" class="filter-select">
+            <option value="ALL">All Regions</option>
+          </select>
+          <select id="philFilter" class="filter-select">
+            <option value="ALL">All Philosophies</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="archive-list" id="archiveList"></div>
+    </div>
 
     <footer class="app-credits-footer">
       Dexicon &bull; Created by DCA
@@ -376,62 +520,87 @@
       });
     }
 
+    // Extended Database with Dostoevsky, Nicholas Sparks, Stoics, Regional Wisdom
     const quotes = [
       {
-        quote: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
-        author: "Will Durant (interpreting Aristotle)",
-        source: "The Story of Philosophy",
-        context: "Reflects the ancient concept of arete (virtue) as active training rather than theoretical belief.",
-        category: "Habit"
+        quote: "To love someone is to see them as God intended them.",
+        author: "Fyodor Dostoevsky",
+        source: "The Brothers Karamazov",
+        tradition: "Existential / Christian",
+        region: "Russia",
+        context: "19th-century psychological masterpiece framing unconditional love not as sentimentality, but as spiritual perception."
       },
       {
-        quote: "The journey of a thousand miles begins with a single step.",
-        author: "Laozi",
-        source: "Dao De Jing, Chapter 64",
-        context: "Classical Chinese philosophy on patience and the compounding power of small beginnings.",
-        category: "Momentum"
-      },
-      {
-        quote: "To everything there is a season, and a time to every purpose under the heaven.",
-        author: "Ecclesiastes 3:1",
-        source: "The Hebrew Bible / Tanakh",
-        context: "Wisdom literature acknowledging the natural rhythmic shifts between action and rest.",
-        category: "Patience"
+        quote: "Love is like the wind, you can't see it with your eyes, but you can feel it with your whole heart.",
+        author: "Nicholas Sparks",
+        source: "A Walk to Remember",
+        tradition: "Romanticism",
+        region: "North America",
+        context: "Modern reflection examining invisible emotional realities that direct human choices and purpose."
       },
       {
         quote: "You have power over your mind - not outside events. Realize this, and you will find strength.",
         author: "Marcus Aurelius",
         source: "Meditations, Book IV",
-        context: "Personal Stoic journal notes written on the military frontier regarding emotional sovereignty.",
-        category: "Resilience"
+        tradition: "Stoicism",
+        region: "Greco-Roman",
+        context: "Private wartime battlefield journal on maintaining composure despite external chaos."
+      },
+      {
+        quote: "We suffer more often in imagination than in reality.",
+        author: "Seneca the Younger",
+        source: "Letters from a Stoic",
+        tradition: "Stoicism",
+        region: "Greco-Roman",
+        context: "Stoic counsel warning against premature anxiety and catastrophic anticipation."
+      },
+      {
+        quote: "The journey of a thousand miles begins with a single step.",
+        author: "Laozi",
+        source: "Dao De Jing, Chapter 64",
+        tradition: "Daoism",
+        region: "China",
+        context: "Classical Daoist principle of effortless momentum and compound growth from modest actions."
+      },
+      {
+        quote: "To everything there is a season, and a time to every purpose under the heaven.",
+        author: "Ecclesiastes 3:1",
+        source: "The Hebrew Bible / Tanakh",
+        tradition: "Wisdom Literature",
+        region: "Middle East",
+        context: "Ancient meditative text embracing cyclical rhythms between seasons of labor and rest."
       },
       {
         quote: "The wound is the place where the Light enters you.",
         author: "Jalal al-Din Muhammad Rumi",
-        source: "Sufi Poetry / Masnavi",
-        context: "13th-century Persian writing framing adversity as the primary entry point for deeper wisdom.",
-        category: "Growth"
+        source: "The Masnavi",
+        tradition: "Sufism",
+        region: "Middle East",
+        context: "13th-century mystical verse reframing vulnerability and suffering as catalysts for maturity."
       },
       {
         quote: "If you want to go fast, go alone. If you want to go far, go together.",
         author: "Traditional Proverb",
-        source: "African Oral Tradition",
-        context: "Community-centered philosophy emphasizing collective endurance over isolated bursts of speed.",
-        category: "Harmony"
-      },
-      {
-        quote: "No man ever steps in the same river twice, for it's not the same river and he's not the same man.",
-        author: "Heraclitus",
-        source: "Presocratic Fragments",
-        context: "Highlights the universal reality of continuous inner and outer flux.",
-        category: "Change"
+        source: "Oral Tradition",
+        tradition: "Ubuntu / Communal",
+        region: "Africa",
+        context: "Enduring wisdom emphasizing communal endurance over brief, solitary bursts of effort."
       },
       {
         quote: "Ang hindi marunong lumingon sa pinanggalingan ay hindi makakarating sa paroroonan.",
         author: "Traditional Proverb",
         source: "Philippine Folk Wisdom",
-        context: "Root-awareness and gratitude as indispensable anchors before forging into unfamiliar territory.",
-        category: "Roots"
+        tradition: "Folk Philosophy",
+        region: "Philippines",
+        context: "Root-awareness and gratitude as foundational guideposts before charting new horizons."
+      },
+      {
+        quote: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
+        author: "Will Durant (interpreting Aristotle)",
+        source: "The Story of Philosophy",
+        tradition: "Classical Virtue",
+        region: "Greco-Roman",
+        context: "Synthesizes the ancient concept of 'arete' (virtue) as practical daily conditioning."
       }
     ];
 
@@ -450,17 +619,24 @@
       return { quote: quotes[index], index: index + 1 };
     }
 
+    // Set Daily View
     const todayKey = getTodayKey();
-    const { quote: todayQuote, index: quoteNumber } = getDeterministicQuote(todayKey);
+    let activeQuoteData = getDeterministicQuote(todayKey);
 
-    document.getElementById('dexId').textContent = `DEX ENTRY #${String(quoteNumber).padStart(3, '0')}`;
+    function displayQuote(entry, num) {
+      document.getElementById('dexId').textContent = `DEX ENTRY #${String(num).padStart(3, '0')}`;
+      document.getElementById('quotePhil').textContent = entry.tradition;
+      document.getElementById('quoteRegion').textContent = entry.region;
+      document.getElementById('quoteText').textContent = `"${entry.quote}"`;
+      document.getElementById('quoteAuthor').textContent = entry.author;
+      document.getElementById('quoteSource').textContent = entry.source;
+      document.getElementById('quoteContext').textContent = entry.context;
+    }
+
     document.getElementById('todayDate').textContent = todayKey.replace(/-/g, '.');
-    document.getElementById('quoteCategory').textContent = todayQuote.category;
-    document.getElementById('quoteText').textContent = `"${todayQuote.quote}"`;
-    document.getElementById('quoteAuthor').textContent = todayQuote.author;
-    document.getElementById('quoteSource').textContent = todayQuote.source;
-    document.getElementById('quoteContext').textContent = todayQuote.context;
+    displayQuote(activeQuoteData.quote, activeQuoteData.index);
 
+    // Persistence & Auto-save
     const storageKey = `dexicon_${todayKey}`;
     const textarea = document.getElementById('reflectionInput');
     const saveStatus = document.getElementById('saveStatus');
@@ -480,6 +656,103 @@
       }, 400);
     });
 
+    // Tab Navigation
+    const tabDaily = document.getElementById('tabDaily');
+    const tabCatalog = document.getElementById('tabCatalog');
+    const viewDaily = document.getElementById('viewDaily');
+    const viewCatalog = document.getElementById('viewCatalog');
+
+    tabDaily.addEventListener('click', () => {
+      tabDaily.classList.add('active');
+      tabCatalog.classList.remove('active');
+      viewDaily.style.display = 'flex';
+      viewCatalog.style.display = 'none';
+    });
+
+    tabCatalog.addEventListener('click', () => {
+      tabCatalog.classList.add('active');
+      tabDaily.classList.remove('active');
+      viewDaily.style.display = 'none';
+      viewCatalog.style.display = 'flex';
+      renderArchive();
+    });
+
+    // Populate Filters
+    const regionFilter = document.getElementById('regionFilter');
+    const philFilter = document.getElementById('philFilter');
+
+    const uniqueRegions = [...new Set(quotes.map(q => q.region))].sort();
+    const uniquePhils = [...new Set(quotes.map(q => q.tradition))].sort();
+
+    uniqueRegions.forEach(r => {
+      const opt = document.createElement('option');
+      opt.value = r; opt.textContent = r;
+      regionFilter.appendChild(opt);
+    });
+
+    uniquePhils.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p; opt.textContent = p;
+      philFilter.appendChild(opt);
+    });
+
+    // Archive Search & Filter
+    const searchInput = document.getElementById('archiveSearch');
+    const archiveList = document.getElementById('archiveList');
+
+    searchInput.addEventListener('input', renderArchive);
+    regionFilter.addEventListener('change', renderArchive);
+    philFilter.addEventListener('change', renderArchive);
+
+    function renderArchive() {
+      const query = searchInput.value.toLowerCase();
+      const selRegion = regionFilter.value;
+      const selPhil = philFilter.value;
+
+      archiveList.innerHTML = '';
+
+      const filtered = quotes.filter((q, idx) => {
+        const matchesQuery = q.quote.toLowerCase().includes(query) ||
+                             q.author.toLowerCase().includes(query) ||
+                             q.source.toLowerCase().includes(query);
+        const matchesRegion = (selRegion === 'ALL' || q.region === selRegion);
+        const matchesPhil = (selPhil === 'ALL' || q.tradition === selPhil);
+        return matchesQuery && matchesRegion && matchesPhil;
+      });
+
+      if (filtered.length === 0) {
+        archiveList.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono); padding:1rem 0;">No matching entries found in the Dexicon archives.</div>';
+        return;
+      }
+
+      filtered.forEach(q => {
+        const globalIndex = quotes.indexOf(q) + 1;
+        const card = document.createElement('div');
+        card.className = 'archive-card';
+        card.innerHTML = `
+          <div class="author-line">
+            <span>${q.author}</span>
+            <div class="badge-group">
+              <span class="type-badge badge-phil">${q.tradition}</span>
+              <span class="type-badge badge-region">${q.region}</span>
+            </div>
+          </div>
+          <div class="quote-body">"${q.quote}"</div>
+          <div style="font-size:0.75rem; color:var(--text-muted);">${q.source}</div>
+          <button class="reflect-this-btn" data-index="${globalIndex}">Reflect on this</button>
+        `;
+
+        card.querySelector('.reflect-this-btn').addEventListener('click', () => {
+          displayQuote(q, globalIndex);
+          tabDaily.click();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        archiveList.appendChild(card);
+      });
+    }
+
+    // Past Logs Drawer
     const historyBtn = document.getElementById('toggleHistoryBtn');
     const historyDrawer = document.getElementById('historyDrawer');
 
@@ -530,6 +803,7 @@
       return text.replace(/[&<>"']/g, m => map[m]);
     }
 
+    // Export Backup
     document.getElementById('exportBtn').addEventListener('click', () => {
       const exportData = {};
       for (let i = 0; i < localStorage.length; i++) {
