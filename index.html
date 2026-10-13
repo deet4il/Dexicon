@@ -39,7 +39,7 @@
 
     .container {
       width: 100%;
-      max-width: 650px;
+      max-width: 640px;
       display: flex;
       flex-direction: column;
       gap: 1.25rem;
@@ -130,7 +130,7 @@
       letter-spacing: 0.05em;
     }
 
-    /* Tab Switcher */
+    /* Tabs */
     .tab-bar {
       display: flex;
       gap: 0.5rem;
@@ -144,7 +144,7 @@
       background: transparent;
       border: 1px solid transparent;
       color: var(--text-muted);
-      padding: 0.4rem 0.8rem;
+      padding: 0.45rem 0.85rem;
       border-radius: 6px;
       cursor: pointer;
       letter-spacing: 0.05em;
@@ -157,7 +157,7 @@
       border-color: var(--border-subtle);
     }
 
-    /* Screen / Main Card */
+    /* Cards */
     .dex-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -172,7 +172,7 @@
       align-items: center;
       margin-bottom: 1.1rem;
       flex-wrap: wrap;
-      gap: 0.5rem;
+      gap: 0.4rem;
     }
 
     .badge-group {
@@ -229,7 +229,7 @@
       padding: 0.65rem 0.8rem;
     }
 
-    /* Reflection Editor */
+    /* Journal Workspace */
     .journal-section {
       display: flex;
       flex-direction: column;
@@ -272,9 +272,8 @@
     }
 
     textarea:focus { border-color: var(--accent-blue); }
-    textarea::placeholder { color: #484f58; }
 
-    /* Controls & Footer */
+    /* Controls */
     .footer-actions {
       display: flex;
       justify-content: space-between;
@@ -295,8 +294,8 @@
     }
     .btn:hover { background: #21262d; }
 
-    /* Archive / Database Explorer */
-    .archive-controls {
+    /* Codex Feed (Scrollable List) */
+    .codex-controls {
       display: flex;
       flex-direction: column;
       gap: 0.6rem;
@@ -318,31 +317,13 @@
       outline: none;
     }
 
-    .filters-row {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .filter-select {
-      background: #0d1117;
-      border: 1px solid var(--border-subtle);
-      color: var(--text-main);
-      font-family: var(--font-mono);
-      font-size: 0.72rem;
-      padding: 0.4rem 0.6rem;
-      border-radius: 4px;
-      outline: none;
-    }
-
-    .archive-list {
+    .feed-container {
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
-      margin-top: 0.5rem;
     }
 
-    .archive-card {
+    .quote-scroll-item {
       background: #11151b;
       border: 1px solid var(--card-border);
       border-radius: 8px;
@@ -352,7 +333,7 @@
       gap: 0.5rem;
     }
 
-    .archive-card .author-line {
+    .quote-scroll-item .author-line {
       font-weight: 600;
       font-size: 0.85rem;
       color: var(--text-main);
@@ -361,14 +342,14 @@
       align-items: center;
     }
 
-    .archive-card .quote-body {
+    .quote-scroll-item .body-text {
       font-size: 0.92rem;
       font-style: italic;
       color: #c9d1d9;
       line-height: 1.5;
     }
 
-    .reflect-this-btn {
+    .reflect-action-btn {
       align-self: flex-start;
       font-family: var(--font-mono);
       font-size: 0.68rem;
@@ -379,11 +360,22 @@
       border-radius: 4px;
       cursor: pointer;
     }
-    .reflect-this-btn:hover {
+    .reflect-action-btn:hover {
       background: rgba(56, 139, 234, 0.1);
     }
 
-    /* History Feed */
+    .load-more-btn {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 0.75rem;
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
+    }
+
     .history-drawer {
       display: flex;
       flex-direction: column;
@@ -397,21 +389,6 @@
       border-radius: 8px;
       padding: 0.9rem;
       font-size: 0.82rem;
-    }
-
-    .history-item .hist-header {
-      display: flex;
-      justify-content: space-between;
-      font-family: var(--font-mono);
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      margin-bottom: 0.4rem;
-    }
-
-    .history-item .hist-quote {
-      font-style: italic;
-      color: #c9d1d9;
-      margin-bottom: 0.4rem;
     }
 
     .app-credits-footer {
@@ -448,10 +425,10 @@
       </div>
     </header>
 
-    <!-- Section Navigation -->
+    <!-- Navigation -->
     <nav class="tab-bar">
-      <button class="tab-btn active" id="tabDaily">Daily Entry</button>
-      <button class="tab-btn" id="tabCatalog">Archive Codex</button>
+      <button class="tab-btn active" id="tabDaily">Daily Resonance</button>
+      <button class="tab-btn" id="tabCodex">World Codex (Scroll)</button>
     </nav>
 
     <!-- VIEW 1: Daily Focus -->
@@ -491,21 +468,17 @@
       <div class="history-drawer" id="historyDrawer" style="display: none;"></div>
     </div>
 
-    <!-- VIEW 2: Archive / Database Catalog -->
-    <div id="viewCatalog" style="display: none; flex-direction: column; gap: 1rem;">
-      <div class="archive-controls">
-        <input type="text" id="archiveSearch" class="search-input" placeholder="Search author, keyword, or text..." />
-        <div class="filters-row">
-          <select id="regionFilter" class="filter-select">
-            <option value="ALL">All Regions</option>
-          </select>
-          <select id="philFilter" class="filter-select">
-            <option value="ALL">All Philosophies</option>
-          </select>
+    <!-- VIEW 2: Infinite / Online World Codex -->
+    <div id="viewCodex" style="display: none; flex-direction: column; gap: 1rem;">
+      <div class="codex-controls">
+        <input type="text" id="codexSearch" class="search-input" placeholder="Filter through loaded quotes or authors..." />
+        <div style="font-size:0.7rem; color:var(--text-muted); font-family:var(--font-mono);" id="onlineStatusNotice">
+          CONNECTED TO GLOBAL REPOSITORIES
         </div>
       </div>
 
-      <div class="archive-list" id="archiveList"></div>
+      <div class="feed-container" id="feedContainer"></div>
+      <button class="load-more-btn" id="loadMoreBtn">Load More Quotes (+30)</button>
     </div>
 
     <footer class="app-credits-footer">
@@ -520,15 +493,15 @@
       });
     }
 
-    // Extended Database with Dostoevsky, Nicholas Sparks, Stoics, Regional Wisdom
-    const quotes = [
+    // Core offline database pool
+    const coreQuotes = [
       {
         quote: "To love someone is to see them as God intended them.",
         author: "Fyodor Dostoevsky",
         source: "The Brothers Karamazov",
         tradition: "Existential / Christian",
         region: "Russia",
-        context: "19th-century psychological masterpiece framing unconditional love not as sentimentality, but as spiritual perception."
+        context: "19th-century psychological masterpiece framing unconditional love as profound perception."
       },
       {
         quote: "Love is like the wind, you can't see it with your eyes, but you can feel it with your whole heart.",
@@ -536,7 +509,7 @@
         source: "A Walk to Remember",
         tradition: "Romanticism",
         region: "North America",
-        context: "Modern reflection examining invisible emotional realities that direct human choices and purpose."
+        context: "Exploration of invisible convictions that govern human direction."
       },
       {
         quote: "You have power over your mind - not outside events. Realize this, and you will find strength.",
@@ -544,7 +517,7 @@
         source: "Meditations, Book IV",
         tradition: "Stoicism",
         region: "Greco-Roman",
-        context: "Private wartime battlefield journal on maintaining composure despite external chaos."
+        context: "Private wartime reflections on personal discipline and emotional sovereignty."
       },
       {
         quote: "We suffer more often in imagination than in reality.",
@@ -552,7 +525,7 @@
         source: "Letters from a Stoic",
         tradition: "Stoicism",
         region: "Greco-Roman",
-        context: "Stoic counsel warning against premature anxiety and catastrophic anticipation."
+        context: "Stoic warning against premature dread and invented catastrophe."
       },
       {
         quote: "The journey of a thousand miles begins with a single step.",
@@ -560,7 +533,7 @@
         source: "Dao De Jing, Chapter 64",
         tradition: "Daoism",
         region: "China",
-        context: "Classical Daoist principle of effortless momentum and compound growth from modest actions."
+        context: "Principles of compound momentum and modest beginnings."
       },
       {
         quote: "To everything there is a season, and a time to every purpose under the heaven.",
@@ -568,7 +541,7 @@
         source: "The Hebrew Bible / Tanakh",
         tradition: "Wisdom Literature",
         region: "Middle East",
-        context: "Ancient meditative text embracing cyclical rhythms between seasons of labor and rest."
+        context: "Meditative literature acknowledging rhythmic phases of labor, rest, and renewal."
       },
       {
         quote: "The wound is the place where the Light enters you.",
@@ -576,7 +549,7 @@
         source: "The Masnavi",
         tradition: "Sufism",
         region: "Middle East",
-        context: "13th-century mystical verse reframing vulnerability and suffering as catalysts for maturity."
+        context: "Adversity and vulnerability recontextualized as the doorway to wisdom."
       },
       {
         quote: "If you want to go fast, go alone. If you want to go far, go together.",
@@ -584,7 +557,7 @@
         source: "Oral Tradition",
         tradition: "Ubuntu / Communal",
         region: "Africa",
-        context: "Enduring wisdom emphasizing communal endurance over brief, solitary bursts of effort."
+        context: "Community solidarity over solitary speed."
       },
       {
         quote: "Ang hindi marunong lumingon sa pinanggalingan ay hindi makakarating sa paroroonan.",
@@ -592,7 +565,7 @@
         source: "Philippine Folk Wisdom",
         tradition: "Folk Philosophy",
         region: "Philippines",
-        context: "Root-awareness and gratitude as foundational guideposts before charting new horizons."
+        context: "Root-awareness as the prerequisite for progress."
       },
       {
         quote: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
@@ -600,7 +573,7 @@
         source: "The Story of Philosophy",
         tradition: "Classical Virtue",
         region: "Greco-Roman",
-        context: "Synthesizes the ancient concept of 'arete' (virtue) as practical daily conditioning."
+        context: "Character and virtue as active habituation."
       }
     ];
 
@@ -615,28 +588,28 @@
         hash = (hash << 5) - hash + dateStr.charCodeAt(i);
         hash |= 0;
       }
-      const index = Math.abs(hash) % quotes.length;
-      return { quote: quotes[index], index: index + 1 };
+      const index = Math.abs(hash) % coreQuotes.length;
+      return { quote: coreQuotes[index], index: index + 1 };
     }
 
-    // Set Daily View
+    // Set Daily Screen
     const todayKey = getTodayKey();
-    let activeQuoteData = getDeterministicQuote(todayKey);
+    const activeDaily = getDeterministicQuote(todayKey);
 
-    function displayQuote(entry, num) {
+    function displayDaily(entry, num) {
       document.getElementById('dexId').textContent = `DEX ENTRY #${String(num).padStart(3, '0')}`;
-      document.getElementById('quotePhil').textContent = entry.tradition;
-      document.getElementById('quoteRegion').textContent = entry.region;
+      document.getElementById('quotePhil').textContent = entry.tradition || "PHILOSOPHY";
+      document.getElementById('quoteRegion').textContent = entry.region || "GLOBAL";
       document.getElementById('quoteText').textContent = `"${entry.quote}"`;
       document.getElementById('quoteAuthor').textContent = entry.author;
-      document.getElementById('quoteSource').textContent = entry.source;
-      document.getElementById('quoteContext').textContent = entry.context;
+      document.getElementById('quoteSource').textContent = entry.source || "World Wisdom";
+      document.getElementById('quoteContext').textContent = entry.context || "Selected from the global index.";
     }
 
     document.getElementById('todayDate').textContent = todayKey.replace(/-/g, '.');
-    displayQuote(activeQuoteData.quote, activeQuoteData.index);
+    displayDaily(activeDaily.quote, activeDaily.index);
 
-    // Persistence & Auto-save
+    // Save & Typing Logic
     const storageKey = `dexicon_${todayKey}`;
     const textarea = document.getElementById('reflectionInput');
     const saveStatus = document.getElementById('saveStatus');
@@ -656,99 +629,109 @@
       }, 400);
     });
 
-    // Tab Navigation
+    // View Switching
     const tabDaily = document.getElementById('tabDaily');
-    const tabCatalog = document.getElementById('tabCatalog');
+    const tabCodex = document.getElementById('tabCodex');
     const viewDaily = document.getElementById('viewDaily');
-    const viewCatalog = document.getElementById('viewCatalog');
+    const viewCodex = document.getElementById('viewCodex');
 
     tabDaily.addEventListener('click', () => {
       tabDaily.classList.add('active');
-      tabCatalog.classList.remove('active');
+      tabCodex.classList.remove('active');
       viewDaily.style.display = 'flex';
-      viewCatalog.style.display = 'none';
+      viewCodex.style.display = 'none';
     });
 
-    tabCatalog.addEventListener('click', () => {
-      tabCatalog.classList.add('active');
+    tabCodex.addEventListener('click', () => {
+      tabCodex.classList.add('active');
       tabDaily.classList.remove('active');
       viewDaily.style.display = 'none';
-      viewCatalog.style.display = 'flex';
-      renderArchive();
+      viewCodex.style.display = 'flex';
+      if (allCodexQuotes.length === 0) {
+        initCodexFeed();
+      }
     });
 
-    // Populate Filters
-    const regionFilter = document.getElementById('regionFilter');
-    const philFilter = document.getElementById('philFilter');
+    // World Codex Infinite Feed Logic
+    let allCodexQuotes = [];
+    let currentApiSkip = 0;
+    const feedContainer = document.getElementById('feedContainer');
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    const codexSearch = document.getElementById('codexSearch');
 
-    const uniqueRegions = [...new Set(quotes.map(q => q.region))].sort();
-    const uniquePhils = [...new Set(quotes.map(q => q.tradition))].sort();
+    function initCodexFeed() {
+      // Seed with core local quotes first
+      allCodexQuotes = [...coreQuotes];
+      renderCodex();
+      fetchOnlineQuotes();
+    }
 
-    uniqueRegions.forEach(r => {
-      const opt = document.createElement('option');
-      opt.value = r; opt.textContent = r;
-      regionFilter.appendChild(opt);
+    async function fetchOnlineQuotes() {
+      const notice = document.getElementById('onlineStatusNotice');
+      notice.textContent = "SYNCHRONIZING WITH WORLD DATABASE...";
+      try {
+        const response = await fetch(`https://dummyjson.com/quotes?limit=30&skip=${currentApiSkip}`);
+        const data = await response.json();
+        if (data && data.quotes) {
+          const formatted = data.quotes.map(q => ({
+            quote: q.quote,
+            author: q.author,
+            source: "World Literature / Anthology",
+            tradition: "Universal",
+            region: "Global",
+            context: "Cataloged from international records."
+          }));
+          allCodexQuotes.push(...formatted);
+          currentApiSkip += 30;
+          notice.textContent = `ONLINE // ${allCodexQuotes.length} ENTRIES ARCHIVED`;
+          renderCodex();
+        }
+      } catch (err) {
+        notice.textContent = "OFFLINE MODE // SERVING CACHED ARCHIVES";
+      }
+    }
+
+    loadMoreBtn.addEventListener('click', () => {
+      fetchOnlineQuotes();
     });
 
-    uniquePhils.forEach(p => {
-      const opt = document.createElement('option');
-      opt.value = p; opt.textContent = p;
-      philFilter.appendChild(opt);
-    });
+    codexSearch.addEventListener('input', renderCodex);
 
-    // Archive Search & Filter
-    const searchInput = document.getElementById('archiveSearch');
-    const archiveList = document.getElementById('archiveList');
+    function renderCodex() {
+      const query = codexSearch.value.toLowerCase();
+      feedContainer.innerHTML = '';
 
-    searchInput.addEventListener('input', renderArchive);
-    regionFilter.addEventListener('change', renderArchive);
-    philFilter.addEventListener('change', renderArchive);
-
-    function renderArchive() {
-      const query = searchInput.value.toLowerCase();
-      const selRegion = regionFilter.value;
-      const selPhil = philFilter.value;
-
-      archiveList.innerHTML = '';
-
-      const filtered = quotes.filter((q, idx) => {
-        const matchesQuery = q.quote.toLowerCase().includes(query) ||
-                             q.author.toLowerCase().includes(query) ||
-                             q.source.toLowerCase().includes(query);
-        const matchesRegion = (selRegion === 'ALL' || q.region === selRegion);
-        const matchesPhil = (selPhil === 'ALL' || q.tradition === selPhil);
-        return matchesQuery && matchesRegion && matchesPhil;
-      });
+      const filtered = allCodexQuotes.filter(q =>
+        q.quote.toLowerCase().includes(query) || q.author.toLowerCase().includes(query)
+      );
 
       if (filtered.length === 0) {
-        archiveList.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono); padding:1rem 0;">No matching entries found in the Dexicon archives.</div>';
+        feedContainer.innerHTML = '<div style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono); padding:1rem 0;">No matching entries found.</div>';
         return;
       }
 
-      filtered.forEach(q => {
-        const globalIndex = quotes.indexOf(q) + 1;
-        const card = document.createElement('div');
-        card.className = 'archive-card';
-        card.innerHTML = `
+      filtered.forEach((q, idx) => {
+        const item = document.createElement('div');
+        item.className = 'quote-scroll-item';
+        item.innerHTML = `
           <div class="author-line">
             <span>${q.author}</span>
-            <div class="badge-group">
-              <span class="type-badge badge-phil">${q.tradition}</span>
-              <span class="type-badge badge-region">${q.region}</span>
-            </div>
+            <span class="type-badge badge-phil">${q.tradition || 'UNIVERSAL'}</span>
           </div>
-          <div class="quote-body">"${q.quote}"</div>
-          <div style="font-size:0.75rem; color:var(--text-muted);">${q.source}</div>
-          <button class="reflect-this-btn" data-index="${globalIndex}">Reflect on this</button>
+          <div class="body-text">"${q.quote}"</div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.72rem; color:var(--text-muted);">${q.source || ''}</span>
+            <button class="reflect-action-btn" data-index="${idx}">Reflect on this</button>
+          </div>
         `;
 
-        card.querySelector('.reflect-this-btn').addEventListener('click', () => {
-          displayQuote(q, globalIndex);
+        item.querySelector('.reflect-action-btn').addEventListener('click', () => {
+          displayDaily(q, idx + 1);
           tabDaily.click();
           window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
-        archiveList.appendChild(card);
+        feedContainer.appendChild(item);
       });
     }
 
@@ -787,12 +770,12 @@
         const card = document.createElement('div');
         card.className = 'history-item';
         card.innerHTML = `
-          <div class="hist-header">
+          <div style="display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:0.7rem; color:var(--text-muted); margin-bottom:0.4rem;">
             <span>${date}</span>
             <span>${quote.author}</span>
           </div>
-          <div class="hist-quote">"${quote.quote}"</div>
-          <div style="color:var(--text-main); white-space:pre-wrap;">${escapeHtml(note)}</div>
+          <div style="font-style:italic; color:#c9d1d9; font-size:0.8rem; margin-bottom:0.4rem;">"${quote.quote}"</div>
+          <div style="color:var(--text-main); font-size:0.82rem; white-space:pre-wrap;">${escapeHtml(note)}</div>
         `;
         historyDrawer.appendChild(card);
       });
