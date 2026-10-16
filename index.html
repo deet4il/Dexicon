@@ -1,0 +1,1993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0F1217" />
+  <title>SyncDex</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <style>
+    :root {
+      --bg: #0f1217;
+      --card-bg: #161b22;
+      --card-border: #21262d;
+      --accent-red: #ea384d;
+      --accent-blue: #388bea;
+      --accent-green: #3fb950;
+      --accent-yellow: #f1b738;
+      --accent-gold: #ffd700;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --border-subtle: #30363d;
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.25rem 1rem 3rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 620px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.15rem;
+    }
+
+    /* Hardware Header */
+    .pokedex-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid var(--card-border);
+      padding-bottom: 0.85rem;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .avatar-frame {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--card-border);
+      background: #0d1117;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 8px rgba(234, 56, 77, 0.25);
+    }
+
+    .avatar-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .brand-meta {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .app-title {
+      font-family: var(--font-mono);
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--text-main);
+      line-height: 1.1;
+    }
+
+    .app-subtitle {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 3px;
+    }
+
+    .header-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.4rem;
+    }
+
+    .small-leds {
+      display: flex;
+      gap: 0.35rem;
+    }
+
+    .led {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+    .led-red { background: var(--accent-red); box-shadow: 0 0 5px var(--accent-red); }
+    .led-yellow { background: var(--accent-yellow); box-shadow: 0 0 5px var(--accent-yellow); }
+    .led-green { background: var(--accent-green); box-shadow: 0 0 5px var(--accent-green); }
+
+    .dex-tracker-badge {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--accent-yellow);
+      letter-spacing: 0.05em;
+    }
+
+    /* Backup Alert Toast */
+    .backup-alert-banner {
+      background: rgba(241, 183, 56, 0.1);
+      border: 1px solid rgba(241, 183, 56, 0.4);
+      border-radius: 8px;
+      padding: 0.65rem 0.85rem;
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      color: var(--accent-yellow);
+      display: none;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .backup-alert-banner button {
+      background: var(--accent-yellow);
+      color: #0d1117;
+      border: none;
+      padding: 0.3rem 0.6rem;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 0.68rem;
+      cursor: pointer;
+    }
+
+    /* Tabs */
+    .tab-bar {
+      display: flex;
+      gap: 0.4rem;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 0.5rem;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .tab-bar::-webkit-scrollbar { display: none; }
+
+    .tab-btn {
+      font-family: var(--font-mono);
+      font-size: 0.73rem;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 0.45rem 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--card-bg);
+      color: var(--text-main);
+      border-color: var(--border-subtle);
+    }
+
+    /* Dex Bezel Card */
+    .dex-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 1.35rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      position: relative;
+    }
+
+    /* Tasks Architecture */
+    .task-creator-box {
+      background: #11151b;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 0.9rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .task-input-row {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .task-text-input {
+      flex: 1;
+      background: #0d1117;
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 0.55rem 0.75rem;
+      color: var(--text-main);
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .task-text-input:focus { border-color: var(--accent-blue); }
+
+    .task-options-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .task-select {
+      background: #0d1117;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 0.35rem 0.6rem;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      outline: none;
+    }
+
+    .routine-toggle-label {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      cursor: pointer;
+    }
+
+    .group-filter-scroll {
+      display: flex;
+      gap: 0.4rem;
+      overflow-x: auto;
+      padding-bottom: 0.3rem;
+      scrollbar-width: none;
+      align-items: center;
+    }
+    .group-filter-scroll::-webkit-scrollbar { display: none; }
+
+    .group-chip {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      background: #11151b;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 0.3rem 0.65rem;
+      border-radius: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .group-chip.active {
+      background: rgba(56, 139, 234, 0.15);
+      border-color: var(--accent-blue);
+      color: var(--text-main);
+    }
+    .group-del-icon {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1;
+      margin-left: 2px;
+      cursor: pointer;
+    }
+    .group-del-icon:hover { color: var(--accent-red); }
+
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      margin-top: 0.25rem;
+    }
+
+    .task-card {
+      background: #11151b;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 0.75rem 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      transition: border-color 0.15s, opacity 0.2s;
+    }
+    .task-card.shiny {
+      border: 1px solid rgba(255, 215, 0, 0.45);
+      background: linear-gradient(135deg, #11151b 75%, rgba(255, 215, 0, 0.08) 100%);
+      box-shadow: 0 0 10px rgba(255, 215, 0, 0.12);
+    }
+    .task-card.completed {
+      opacity: 0.55;
+    }
+    .task-card.completed .task-title {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    .task-left-section {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .pokeball-check {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--border-subtle);
+      background: #0d1117;
+      cursor: pointer;
+      flex-shrink: 0;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .pokeball-check::after {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--border-subtle);
+      transition: all 0.2s ease;
+    }
+    .task-card.completed .pokeball-check {
+      border-color: var(--accent-red);
+      background: var(--accent-red);
+    }
+    .task-card.completed .pokeball-check::after {
+      background: #fff;
+    }
+
+    .task-sprite-box {
+      width: 40px;
+      height: 40px;
+      background: #0d1117;
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .task-sprite-box img {
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+    }
+
+    .task-meta {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      gap: 2px;
+    }
+
+    .task-badges-row {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .task-badge {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      padding: 0.1rem 0.35rem;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+    .badge-group-tag { background: #21262d; color: var(--text-muted); }
+    .badge-daily-lock { background: rgba(56, 139, 234, 0.15); color: var(--accent-blue); }
+    .badge-shiny-tag { background: rgba(255, 215, 0, 0.18); color: var(--accent-gold); font-weight: 700; }
+
+    .task-title {
+      font-size: 0.88rem;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .task-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .task-delete-btn {
+      background: transparent;
+      border: none;
+      color: var(--border-subtle);
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 0.2rem 0.4rem;
+    }
+    .task-delete-btn:hover { color: var(--accent-red); }
+
+    /* Daily Resonance Elements */
+    .card-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.85rem;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .badge-group {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .type-badge {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+    }
+    .badge-phil { background: rgba(234, 56, 77, 0.15); color: var(--accent-red); border: 1px solid rgba(234, 56, 77, 0.4); }
+    .badge-region { background: rgba(56, 139, 234, 0.15); color: var(--accent-blue); border: 1px solid rgba(56, 139, 234, 0.4); }
+
+    .pokemon-companion-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 0.45rem 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .quote-content {
+      font-size: 1.15rem;
+      line-height: 1.6;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 1rem;
+    }
+
+    .quote-attribution {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      border-left: 2px solid var(--accent-red);
+      padding-left: 0.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .quote-context {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-style: italic;
+      line-height: 1.45;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 6px;
+      padding: 0.65rem 0.8rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .prompt-spark-card {
+      background: rgba(56, 139, 234, 0.08);
+      border: 1px dashed rgba(56, 139, 234, 0.35);
+      border-radius: 6px;
+      padding: 0.65rem 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    textarea {
+      width: 100%;
+      height: 130px;
+      background: #0d1117;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      line-height: 1.55;
+      padding: 0.9rem;
+      resize: vertical;
+      outline: none;
+    }
+    textarea:focus { border-color: var(--accent-blue); }
+
+    /* Button Controls */
+    .footer-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .footer-right-actions {
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    .btn {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      border: 1px solid var(--border-subtle);
+      background: var(--card-bg);
+      color: var(--text-main);
+      padding: 0.55rem 0.85rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn:hover { background: #21262d; border-color: #8b949e; }
+
+    .btn-accent {
+      color: var(--accent-blue);
+      border-color: rgba(56, 139, 234, 0.4);
+    }
+
+    /* Codex Deck & PC Box */
+    .deck-carousel {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      gap: 1rem;
+      padding-bottom: 0.5rem;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .deck-carousel::-webkit-scrollbar { display: none; }
+
+    .swipe-card {
+      flex: 0 0 100%;
+      scroll-snap-align: center;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 1.4rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 280px;
+    }
+
+    .pc-box-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+      gap: 0.5rem;
+      max-height: 300px;
+      overflow-y: auto;
+      padding: 0.5rem;
+      background: #0d1117;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .pc-box-cell {
+      background: #161b22;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .pc-box-cell.shiny {
+      border-color: rgba(255, 215, 0, 0.6);
+      background: rgba(255, 215, 0, 0.05);
+    }
+    .pc-box-cell img {
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+    }
+    .pc-box-cell .star-badge {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      font-size: 0.55rem;
+    }
+
+    /* Export Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.78);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+
+    .modal-sheet {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 1.4rem;
+      width: 100%;
+      max-width: 420px;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .history-drawer {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    .history-item {
+      background: #11151b;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 0.85rem;
+      font-size: 0.82rem;
+    }
+
+    .app-credits-footer {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: #484f58;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header class="pokedex-header">
+      <div class="header-left">
+        <div class="avatar-frame">
+          <img src="icon-192.png" alt="SyncDex Icon" />
+        </div>
+        <div class="brand-meta">
+          <div class="app-title">SYNCDEX</div>
+          <div class="app-subtitle">Trainer OS // DCA</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="small-leds">
+          <div class="led led-red"></div>
+          <div class="led led-yellow"></div>
+          <div class="led led-green"></div>
+        </div>
+        <div class="dex-tracker-badge" id="dexTrackerBadge">REGISTERED: 0 / 1025</div>
+      </div>
+    </header>
+
+    <!-- Backup Milestone Alert Banner -->
+    <div class="backup-alert-banner" id="backupAlertBanner">
+      <span id="backupAlertText">TRAINER'S LOG: 15+ entries unsaved to file storage.</span>
+      <button id="alertExportBtn">Export JSON</button>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="tab-bar">
+      <button class="tab-btn active" id="tabTasks">Field Tasks</button>
+      <button class="tab-btn" id="tabDaily">Daily Resonance</button>
+      <button class="tab-btn" id="tabCodex">World Codex & PC</button>
+    </nav>
+
+    <!-- VIEW 1: FIELD TASKS -->
+    <div id="viewTasks" style="display: flex; flex-direction: column; gap: 1rem;">
+      <section class="task-creator-box">
+        <div class="task-input-row">
+          <input type="text" id="taskTextInput" class="task-text-input" placeholder="Initiate a field bounty or daily habit..." />
+          <button class="btn btn-accent" id="addTaskBtn">+ Deploy</button>
+        </div>
+        <div class="task-options-row">
+          <div style="display: flex; gap: 0.4rem; align-items: center;">
+            <select id="taskGroupSelect" class="task-select"></select>
+            <button class="btn" id="newGroupBtn" style="padding: 0.35rem 0.6rem; font-size: 0.65rem;">+ Group</button>
+          </div>
+          <label class="routine-toggle-label">
+            <input type="checkbox" id="taskDailyToggle" />
+            <span>Daily Routine (Lock Pokémon)</span>
+          </label>
+        </div>
+      </section>
+
+      <!-- Group Filter Chips with Delete (x) -->
+      <div class="group-filter-scroll" id="groupFilterScroll"></div>
+
+      <!-- Task Cards List -->
+      <div class="task-list" id="taskList"></div>
+    </div>
+
+    <!-- VIEW 2: DAILY RESONANCE -->
+    <div id="viewDaily" style="display: none; flex-direction: column; gap: 1.2rem;">
+      <main class="dex-card">
+        <div class="card-topbar">
+          <div class="badge-group">
+            <span class="type-badge badge-phil" id="quotePhil">PHILOSOPHY</span>
+            <span class="type-badge badge-region" id="quoteRegion">REGION</span>
+          </div>
+          <span style="font-family:var(--font-mono); font-size:0.72rem; color:var(--text-muted);" id="todayDate">----.--.--</span>
+        </div>
+
+        <div class="pokemon-companion-bar">
+          <div style="width:48px; height:48px; background:#0d1117; border:1px solid var(--border-subtle); border-radius:6px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <img id="dailyPokemonSprite" style="width:100%; height:100%; image-rendering:pixelated;" src="icon-192.png" alt="Pokémon" />
+          </div>
+          <div style="display:flex; flex-direction:column;">
+            <span style="font-family:var(--font-mono); font-size:0.68rem; color:var(--accent-yellow);" id="dailyPokemonNum">#0000 REGISTERED</span>
+            <span style="font-family:var(--font-mono); font-size:0.85rem; font-weight:700; text-transform:uppercase;" id="dailyPokemonName">UNKNOWN SPECIES</span>
+          </div>
+        </div>
+
+        <div class="quote-content" id="quoteText">Loading entry...</div>
+        <div class="quote-attribution">
+          <span class="author" id="quoteAuthor">---</span><br />
+          <span id="quoteSource">---</span>
+        </div>
+        <div class="quote-context" id="quoteContext">---</div>
+
+        <div class="prompt-spark-card">
+          <div style="font-family:var(--font-mono); font-size:0.66rem; color:var(--accent-blue); display:flex; justify-content:space-between; align-items:center;">
+            <span>PROMPT SPARK // CONTEMPLATION</span>
+            <button id="insertSparkBtn" style="background:transparent; border:1px solid rgba(56,139,234,0.4); color:var(--accent-blue); font-family:var(--font-mono); font-size:0.62rem; padding:0.2rem 0.45rem; border-radius:4px; cursor:pointer;">+ Insert into log</button>
+          </div>
+          <div style="font-size:0.82rem; font-style:italic; color:#c9d1d9;" id="promptSparkText">Reflect on this perspective today.</div>
+        </div>
+      </main>
+
+      <section style="display:flex; flex-direction:column; gap:0.5rem;">
+        <div style="font-family:var(--font-mono); font-size:0.72rem; color:var(--text-muted); display:flex; justify-content:space-between;">
+          <span>TRAINER'S LOG // TODAY</span>
+          <span id="saveStatus" style="color:var(--accent-green); opacity:0; transition:opacity 0.25s;">SYNCED</span>
+        </div>
+        <textarea id="reflectionInput" placeholder="Record your observations, field accomplishments, or reflections..."></textarea>
+      </section>
+
+      <div class="footer-actions">
+        <button class="btn" id="toggleHistoryBtn">View Past Logs</button>
+        <div class="footer-right-actions">
+          <button class="btn btn-accent" id="importBtn">Import JSON</button>
+          <button class="btn" id="openExportModalBtn">Export Data</button>
+          <input type="file" id="fileImportInput" accept=".json" style="display: none;" />
+        </div>
+      </div>
+
+      <div class="history-drawer" id="historyDrawer" style="display: none;">
+        <input type="text" id="historySearch" style="width:100%; background:#0d1117; border:1px solid var(--border-subtle); border-radius:6px; padding:0.5rem 0.75rem; color:var(--text-main); font-size:0.8rem; outline:none;" placeholder="Search logs by keyword, author, or Pokémon..." />
+        <div id="historyFeed" style="display:flex; flex-direction:column; gap:0.65rem; margin-top:0.4rem;"></div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: WORLD CODEX & TRAINER'S PC -->
+    <div id="viewCodex" style="display: none; flex-direction: column; gap: 1.2rem;">
+      <section>
+        <div style="font-family:var(--font-mono); font-size:0.72rem; color:var(--text-muted); margin-bottom:0.6rem; display:flex; justify-content:space-between;">
+          <span>TRAINER'S PC BOX (CAUGHT SPECIMENS)</span>
+          <span id="pcBoxStats">0 Caught &bull; 0 Shiny</span>
+        </div>
+        <div class="pc-box-grid" id="pcBoxGrid"></div>
+      </section>
+
+      <section class="dex-card" style="padding:1rem;">
+        <div style="font-family:var(--font-mono); font-size:0.72rem; color:var(--text-muted); margin-bottom:0.75rem; display:flex; justify-content:space-between;">
+          <span id="deckStatus">WORLD CODEX (INFINITE SHUFFLE)</span>
+          <span id="deckCounter">1 / --</span>
+        </div>
+        <div class="deck-carousel" id="deckCarousel"></div>
+      </section>
+    </div>
+
+    <footer class="app-credits-footer">
+      SyncDex &bull; Created by DCA
+    </footer>
+  </div>
+
+  <!-- Export Modal -->
+  <div class="modal-overlay" id="exportModal">
+    <div class="modal-sheet">
+      <div style="display:flex; justify-content:space-between; align-items:center; font-family:var(--font-mono); font-size:0.85rem; font-weight:700;">
+        <span>SELECT EXPORT FORMAT</span>
+        <button id="closeModalBtn" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:1.1rem;">&times;</button>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:0.6rem;">
+        <div class="export-option-card" id="exportJsonOption" style="background:#0d1117; border:1px solid var(--border-subtle); border-radius:8px; padding:0.85rem; cursor:pointer;">
+          <div style="font-family:var(--font-mono); font-size:0.78rem; font-weight:700;">Complete JSON Backup (.json)</div>
+          <div style="font-size:0.7rem; color:var(--text-muted);">Backs up all Field Tasks, custom groups, caught specimens, and Trainer's Logs.</div>
+        </div>
+        <div class="export-option-card" id="exportWordOption" style="background:#0d1117; border:1px solid var(--border-subtle); border-radius:8px; padding:0.85rem; cursor:pointer;">
+          <div style="font-family:var(--font-mono); font-size:0.78rem; font-weight:700;">Word Document (.doc)</div>
+          <div style="font-size:0.7rem; color:var(--text-muted);">Formatted report of completed bounties and reflective journals.</div>
+        </div>
+        <div class="export-option-card" id="exportPdfOption" style="background:#0d1117; border:1px solid var(--border-subtle); border-radius:8px; padding:0.85rem; cursor:pointer;">
+          <div style="font-family:var(--font-mono); font-size:0.78rem; font-weight:700;">Printable PDF (.pdf)</div>
+          <div style="font-size:0.7rem; color:var(--text-muted);">Clean, printable A4/Letter archival sheets for your physical binder or PDF export.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(console.error);
+      });
+    }
+
+    const NATIONAL_DEX_MAX = 1025;
+    const SHINY_CHANCE = 16; // 1 in 16
+
+    function getSpriteUrl(id, isShiny = false) {
+      return isShiny
+        ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${id}.png`
+        : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+    }
+
+    function getTodayKey() {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    }
+
+    // --- FULL 32 CURATED OFFLINE CANON ---
+    const coreQuotes = [
+      {
+        quote: "To love someone is to see them as God intended them.",
+        author: "Fyodor Dostoevsky",
+        source: "The Brothers Karamazov",
+        tradition: "Existential / Christian",
+        region: "Russia",
+        context: "19th-century psychological masterpiece framing unconditional love as spiritual perception.",
+        prompt: "Who in your life needs you to look past their flaws and see their true worth today?",
+        pokemon: { id: 212, name: "Scizor" }
+      },
+      {
+        quote: "Love is like the wind, you can't see it with your eyes, but you can feel it with your whole heart.",
+        author: "Nicholas Sparks",
+        source: "A Walk to Remember",
+        tradition: "Romanticism",
+        region: "North America",
+        context: "Explores intangible emotional convictions that guide human purpose and devotion.",
+        prompt: "What unseen conviction or silent value has been quietly driving your recent choices?",
+        pokemon: { id: 150, name: "Mewtwo" }
+      },
+      {
+        quote: "You have power over your mind - not outside events. Realize this, and you will find strength.",
+        author: "Marcus Aurelius",
+        source: "Meditations, Book IV",
+        tradition: "Stoicism",
+        region: "Greco-Roman",
+        context: "Private wartime journal notes on emotional sovereignty and grounded composure.",
+        prompt: "What external event is frustrating you right now that you have zero control over? Can you let it go?",
+        pokemon: { id: 448, name: "Lucario" }
+      },
+      {
+        quote: "We suffer more often in imagination than in reality.",
+        author: "Seneca the Younger",
+        source: "Letters from a Stoic",
+        tradition: "Stoicism",
+        region: "Greco-Roman",
+        context: "Counsel against anticipatory worry and self-inflicted distress.",
+        prompt: "What worst-case scenario have you been replaying in your mind that has not actually happened?",
+        pokemon: { id: 379, name: "Registeel" }
+      },
+      {
+        quote: "Don't explain your philosophy. Embody it.",
+        author: "Epictetus",
+        source: "Enchiridion",
+        tradition: "Stoicism",
+        region: "Greco-Roman",
+        context: "Former slave turned teacher emphasizing that character is demonstrated through action, not lectures.",
+        prompt: "What is one belief you talk about that you could actively demonstrate before sundown?",
+        pokemon: { id: 65, name: "Alakazam" }
+      },
+      {
+        quote: "The journey of a thousand miles begins with a single step.",
+        author: "Laozi",
+        source: "Dao De Jing, Chapter 64",
+        tradition: "Daoism",
+        region: "China",
+        context: "Classical Daoist principle of effortless momentum and compound growth from modest actions.",
+        prompt: "What major project or habit have you delayed? What is the microscopic first step you can take now?",
+        pokemon: { id: 384, name: "Rayquaza" }
+      },
+      {
+        quote: "In the midst of winter, I found there was, within me, an invincible summer.",
+        author: "Albert Camus",
+        source: "Return to Tipasa",
+        tradition: "Absurdism / Humanism",
+        region: "France / Algeria",
+        context: "Celebrates enduring internal vitality that persists regardless of external desolation.",
+        prompt: "Where can you draw warmth or resilience from within yourself during this current period of pressure?",
+        pokemon: { id: 144, name: "Articuno" }
+      },
+      {
+        quote: "To everything there is a season, and a time to every purpose under the heaven.",
+        author: "Ecclesiastes 3:1",
+        source: "The Hebrew Bible / Tanakh",
+        tradition: "Wisdom Literature",
+        region: "Middle East",
+        context: "Ancient meditative text acknowledging the cyclical shifts between labor and quiet rest.",
+        prompt: "Are you trying to plant seeds in a season of harvest, or rush a season that requires patient waiting?",
+        pokemon: { id: 493, name: "Arceus" }
+      },
+      {
+        quote: "The wound is the place where the Light enters you.",
+        author: "Jalal al-Din Muhammad Rumi",
+        source: "The Masnavi",
+        tradition: "Sufism",
+        region: "Middle East",
+        context: "Mystical verse reframing personal vulnerability as the gateway to deeper understanding.",
+        prompt: "How has a recent hurt or failure made you wiser or more empathetic to others?",
+        pokemon: { id: 151, name: "Mew" }
+      },
+      {
+        quote: "Out beyond ideas of wrongdoing and rightdoing there is a field. I'll meet you there.",
+        author: "Jalal al-Din Muhammad Rumi",
+        source: "Sufi Poetry",
+        tradition: "Sufism",
+        region: "Middle East",
+        context: "Poetic call for authentic communion beyond dogmatic moralizing and conceptual barriers.",
+        prompt: "Where can you drop a dispute or need to be 'right' in favor of understanding?",
+        pokemon: { id: 251, name: "Celebi" }
+      },
+      {
+        quote: "If you want to go fast, go alone. If you want to go far, go together.",
+        author: "Traditional Proverb",
+        source: "Oral Tradition",
+        tradition: "Ubuntu / Communal",
+        region: "Africa",
+        context: "Community-centered philosophy emphasizing collective endurance over isolated bursts of speed.",
+        prompt: "Who is in your corner that deserves your appreciation or collaboration this week?",
+        pokemon: { id: 143, name: "Snorlax" }
+      },
+      {
+        quote: "Ang hindi marunong lumingon sa pinanggalingan ay hindi makakarating sa paroroonan.",
+        author: "Traditional Proverb",
+        source: "Philippine Folk Wisdom",
+        tradition: "Folk Philosophy",
+        region: "Philippines",
+        context: "Root-awareness and gratitude as foundational anchors before advancing forward.",
+        prompt: "What root or foundational lesson from your past needs to guide your next decision?",
+        pokemon: { id: 257, name: "Blaziken" }
+      },
+      {
+        quote: "We are what we repeatedly do. Excellence, then, is not an act, but a habit.",
+        author: "Will Durant (interpreting Aristotle)",
+        source: "The Story of Philosophy",
+        tradition: "Classical Virtue",
+        region: "Greco-Roman",
+        context: "Frames human virtue as continuous active habituation rather than abstract theory.",
+        prompt: "What daily routine of yours is slowly forming the person you will be five years from now?",
+        pokemon: { id: 380, name: "Latias" }
+      },
+      {
+        quote: "Fall seven times, stand up eight.",
+        author: "Traditional Proverb (Nana korobi, ya oki)",
+        source: "Japanese Folk Wisdom",
+        tradition: "Bushido / Zen",
+        region: "Japan",
+        context: "Core Japanese principle of relentless resilience, framed by Daruma dolls.",
+        prompt: "Where in your daily grind do you need to pick yourself back up without self-pity?",
+        pokemon: { id: 381, name: "Latios" }
+      },
+      {
+        quote: "In the middle of difficulty lies opportunity.",
+        author: "Albert Einstein",
+        source: "Collected Sayings",
+        tradition: "Scientific Thought",
+        region: "Germany / Global",
+        context: "Reframing friction and obstacle as the exact fertile ground where solutions appear.",
+        prompt: "What friction point in your routine right now could become your greatest asset if approached differently?",
+        pokemon: { id: 475, name: "Gallade" }
+      },
+      {
+        quote: "He who has a why to live can bear almost any how.",
+        author: "Friedrich Nietzsche",
+        source: "Twilight of the Idols",
+        tradition: "Existentialism",
+        region: "Germany",
+        context: "Celebrates the power of intrinsic purpose to sustain human dignity under extreme hardship.",
+        prompt: "When things feel monotonous or tough today, what core purpose makes it worth enduring?",
+        pokemon: { id: 249, name: "Lugia" }
+      },
+      {
+        quote: "Your pain is the breaking of the shell that encloses your understanding.",
+        author: "Kahlil Gibran",
+        source: "The Prophet",
+        tradition: "Mysticism / Poetry",
+        region: "Lebanon",
+        context: "Examines psychological sorrow as necessary expansion of consciousness.",
+        prompt: "What discomfort are you experiencing that is actually stretching your maturity?",
+        pokemon: { id: 250, name: "Ho-Oh" }
+      },
+      {
+        quote: "The supreme art of war is to subdue the enemy without fighting.",
+        author: "Sun Tzu",
+        source: "The Art of War",
+        tradition: "Eastern Strategy",
+        region: "China",
+        context: "Emphasizes strategic foresight, diplomacy, and posture above messy conflict.",
+        prompt: "How can you resolve a tension with patience and calm strategy instead of confrontation?",
+        pokemon: { id: 483, name: "Dialga" }
+      },
+      {
+        quote: "Knowing others is intelligence; knowing yourself is true wisdom.",
+        author: "Laozi",
+        source: "Dao De Jing, Chapter 33",
+        tradition: "Daoism",
+        region: "China",
+        context: "Draws a vital distinction between external competence and introspective self-mastery.",
+        prompt: "What personal trigger or blind spot have you noticed about yourself lately?",
+        pokemon: { id: 484, name: "Palkia" }
+      },
+      {
+        quote: "A room without books is like a body without a soul.",
+        author: "Marcus Tullius Cicero",
+        source: "Attic Letters",
+        tradition: "Classical Humanism",
+        region: "Greco-Roman",
+        context: "Celebrates contemplation, recorded literature, and internal enrichment.",
+        prompt: "What idea or thought have you read recently that nourished your mind?",
+        pokemon: { id: 487, name: "Giratina" }
+      },
+      {
+        quote: "Be kind, for everyone you meet is fighting a hard battle.",
+        author: "Ian Maclaren",
+        source: "Beside the Bonnie Brier Bush",
+        tradition: "Compassion / Ethics",
+        region: "Scotland / Global",
+        context: "Universal reminder that everyone carries unseen burdens requiring mutual forbearance.",
+        prompt: "Who around you might be carrying a quiet burden? How can you give them grace today?",
+        pokemon: { id: 385, name: "Jirachi" }
+      },
+      {
+        quote: "Wisdom begins in wonder.",
+        author: "Socrates",
+        source: "Theaetetus",
+        tradition: "Classical Philosophy",
+        region: "Greco-Roman",
+        context: "Foundational Greek premise that philosophy emerges from humble curiosity.",
+        prompt: "What everyday occurrence have you taken for granted instead of marveling at?",
+        pokemon: { id: 282, name: "Gardevoir" }
+      },
+      {
+        quote: "Beyond the clouds, the sky is always blue.",
+        author: "Traditional Proverb",
+        source: "Scandinavian Folk Wisdom",
+        tradition: "Folk Philosophy",
+        region: "Nordic",
+        context: "Gentle reminder of enduring constants when temporary circumstance appears bleak.",
+        prompt: "What timeless truth remains steady regardless of whatever chaos is happening right now?",
+        pokemon: { id: 196, name: "Espeon" }
+      },
+      {
+        quote: "It is during our darkest moments that we must focus to see the light.",
+        author: "Aristotle Onassis",
+        source: "Personal Reflections",
+        tradition: "Perseverance",
+        region: "Greece",
+        context: "Highlights intentional focus during acute difficulty.",
+        prompt: "What is one small positive detail you can deliberately pay attention to today?",
+        pokemon: { id: 197, name: "Umbreon" }
+      },
+      {
+        quote: "Real difficulty is overcoming how you think about yourself.",
+        author: "Maya Angelou",
+        source: "Essays & Interviews",
+        tradition: "Modern Literature",
+        region: "North America",
+        context: "Pivots human struggle inward toward dismantling limiting self-narratives.",
+        prompt: "What false or limiting label have you placed on yourself that you need to discard?",
+        pokemon: { id: 491, name: "Darkrai" }
+      },
+      {
+        quote: "A tree with strong roots laughs at storms.",
+        author: "Traditional Proverb",
+        source: "Malay Folk Wisdom",
+        tradition: "Folk Philosophy",
+        region: "Southeast Asia",
+        context: "Highlights deep internal grounding as the sole security against external upheaval.",
+        prompt: "What personal principle or routine keeps you anchored when things get turbulent?",
+        pokemon: { id: 492, name: "Shaymin" }
+      },
+      {
+        quote: "I can be changed by what happens to me. But I refuse to be reduced by it.",
+        author: "Maya Angelou",
+        source: "Letter to My Daughter",
+        tradition: "Resilience",
+        region: "North America",
+        context: "Acknowledges circumstance while claiming absolute sovereignty over inner character.",
+        prompt: "How can you adapt to a recent change without letting it diminish your character?",
+        pokemon: { id: 643, name: "Reshiram" }
+      },
+      {
+        quote: "Start where you are. Use what you have. Do what you can.",
+        author: "Arthur Ashe",
+        source: "Days of Grace",
+        tradition: "Practical Stoicism",
+        region: "North America",
+        context: "Pragmatic framework for immediate, humble action without waiting for ideal conditions.",
+        prompt: "What can you accomplish right now with the tools already in your hands?",
+        pokemon: { id: 644, name: "Zekrom" }
+      },
+      {
+        quote: "The soul should always stand ajar, ready to welcome the ecstatic experience.",
+        author: "Emily Dickinson",
+        source: "Collected Letters",
+        tradition: "Transcendental Poetry",
+        region: "North America",
+        context: "Speaks to remaining psychologically receptive to wonder and daily gratitude.",
+        prompt: "Can you pause today to savor a brief moment of quiet, coffee, or fresh air?",
+        pokemon: { id: 716, name: "Xerneas" }
+      },
+      {
+        quote: "The only true wisdom is in knowing you know nothing.",
+        author: "Socrates",
+        source: "Plato's Apology",
+        tradition: "Classical Philosophy",
+        region: "Greco-Roman",
+        context: "Socratic paradox framing intellectual humility as the true precursor to genuine knowledge.",
+        prompt: "What topic do you have an opinion on where you would benefit from listening more than speaking?",
+        pokemon: { id: 717, name: "Yveltal" }
+      },
+      {
+        quote: "Even monkeys fall from trees.",
+        author: "Traditional Proverb (Saru mo ki kara ochiru)",
+        source: "Japanese Folk Wisdom",
+        tradition: "Humility",
+        region: "Japan",
+        context: "Wholesome reminder that even the most adept make mistakes, urging compassion.",
+        prompt: "Can you forgive yourself or a friend for an honest misstep made this week?",
+        pokemon: { id: 791, name: "Solgaleo" }
+      },
+      {
+        quote: "Do not go where the path may lead, go instead where there is no path and leave a trail.",
+        author: "Ralph Waldo Emerson",
+        source: "Essays: First Series",
+        tradition: "Transcendentalism",
+        region: "North America",
+        context: "Calls for authentic individual purpose rather than thoughtless conformity.",
+        prompt: "In what part of your life do you need to stop following others and chart your own direction?",
+        pokemon: { id: 792, name: "Lunala" }
+      }
+    ];
+
+    const fallbackSparks = [
+      "How can this perspective shift a reaction you had today?",
+      "What would embodying this look like in your next conversation?",
+      "Where in your life have you seen the truth of this quote firsthand?",
+      "If you took this advice completely seriously, what would you change today?",
+      "How does this challenge your default way of looking at difficulties?"
+    ];
+
+    // --- NO-REPEAT HISTORY EXEMPTION ENGINE (1 to 1025) ---
+    function getCaughtLedger() {
+      try {
+        return JSON.parse(localStorage.getItem('syncdex_caught_ledger')) || [];
+      } catch(e) { return []; }
+    }
+
+    function recordCaughtPokemon(id, name, isShiny = false, source = 'task') {
+      const ledger = getCaughtLedger();
+      const existing = ledger.find(item => item.id === id);
+      if (existing) {
+        if (isShiny && !existing.isShiny) existing.isShiny = true;
+      } else {
+        ledger.push({ id, name, isShiny, date: getTodayKey(), source });
+        if (ledger.length >= NATIONAL_DEX_MAX) {
+          // Master Dex reset for prestige cycle
+          localStorage.setItem('syncdex_prestige_cycles', String((parseInt(localStorage.getItem('syncdex_prestige_cycles') || '0', 10) + 1)));
+        }
+      }
+      localStorage.setItem('syncdex_caught_ledger', JSON.stringify(ledger));
+      updateDexTrackerUI();
+      renderPcBox();
+    }
+
+    function getUnseenPokemonId() {
+      const caught = new Set(getCaughtLedger().map(item => item.id));
+      const pool = [];
+      for (let i = 1; i <= NATIONAL_DEX_MAX; i++) {
+        if (!caught.has(i)) pool.push(i);
+      }
+      if (pool.length === 0) return Math.floor(Math.random() * NATIONAL_DEX_MAX) + 1;
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    function updateDexTrackerUI() {
+      const ledger = getCaughtLedger();
+      const badge = document.getElementById('dexTrackerBadge');
+      if (badge) badge.textContent = `REGISTERED: ${ledger.length} / ${NATIONAL_DEX_MAX}`;
+    }
+
+    // --- FIELD TASKS & GROUP DELETION ENGINE ---
+    let tasks = [];
+    let taskGroups = ["General", "Work", "Habits", "Research"];
+    let activeGroup = "All";
+
+    function loadTasks() {
+      try {
+        tasks = JSON.parse(localStorage.getItem('syncdex_tasks')) || [];
+        taskGroups = JSON.parse(localStorage.getItem('syncdex_groups')) || ["General", "Work", "Habits", "Research"];
+      } catch(e) { tasks = []; }
+
+      // Daily Routine midnight reset check
+      const lastCheck = localStorage.getItem('syncdex_routine_date');
+      const today = getTodayKey();
+      if (lastCheck !== today) {
+        tasks.forEach(t => { if (t.isDaily) t.completed = false; });
+        localStorage.setItem('syncdex_routine_date', today);
+        saveTasks();
+      }
+    }
+
+    function saveTasks() {
+      localStorage.setItem('syncdex_tasks', JSON.stringify(tasks));
+      localStorage.setItem('syncdex_groups', JSON.stringify(taskGroups));
+    }
+
+    function renderGroupChips() {
+      const scroll = document.getElementById('groupFilterScroll');
+      const select = document.getElementById('taskGroupSelect');
+      scroll.innerHTML = '';
+      select.innerHTML = '';
+
+      const allChips = ["All", ...taskGroups];
+      allChips.forEach(g => {
+        const chip = document.createElement('div');
+        chip.className = `group-chip ${activeGroup === g ? 'active' : ''}`;
+        
+        const label = document.createElement('span');
+        label.textContent = g;
+        label.addEventListener('click', () => {
+          activeGroup = g;
+          renderGroupChips();
+          renderTasks();
+        });
+        chip.appendChild(label);
+
+        // Add delete option for custom groups (protect 'All' and 'General')
+        if (g !== "All" && g !== "General") {
+          const delIcon = document.createElement('span');
+          delIcon.className = 'group-del-icon';
+          delIcon.innerHTML = '&times;';
+          delIcon.title = `Delete group '${g}'`;
+          delIcon.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteGroup(g);
+          });
+          chip.appendChild(delIcon);
+        }
+
+        scroll.appendChild(chip);
+      });
+
+      taskGroups.forEach(g => {
+        const opt = document.createElement('option');
+        opt.value = g;
+        opt.textContent = g;
+        select.appendChild(opt);
+      });
+    }
+
+    function deleteGroup(groupName) {
+      if (!confirm(`Delete channel '${groupName}'? Any existing tasks in this group will be moved to 'General'.`)) {
+        return;
+      }
+      taskGroups = taskGroups.filter(g => g !== groupName);
+      tasks.forEach(t => {
+        if (t.group === groupName) t.group = "General";
+      });
+      if (activeGroup === groupName) activeGroup = "All";
+      saveTasks();
+      renderGroupChips();
+      renderTasks();
+    }
+
+    function renderTasks() {
+      const list = document.getElementById('taskList');
+      list.innerHTML = '';
+
+      const filtered = tasks.filter(t => activeGroup === 'All' || t.group === activeGroup);
+
+      if (filtered.length === 0) {
+        list.innerHTML = '<div style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted); text-align:center; padding:1.5rem 0;">No active bounties in this channel. Deploy one above!</div>';
+        return;
+      }
+
+      filtered.forEach((task) => {
+        const card = document.createElement('div');
+        card.className = `task-card ${task.isShiny ? 'shiny' : ''} ${task.completed ? 'completed' : ''}`;
+        card.innerHTML = `
+          <div class="task-left-section">
+            <div class="pokeball-check" title="Catch & Complete"></div>
+            <div class="task-sprite-box">
+              <img src="${getSpriteUrl(task.pokemonId, task.isShiny)}" alt="${task.pokemonName}" />
+            </div>
+            <div class="task-meta">
+              <div class="task-badges-row">
+                <span class="task-badge badge-group-tag">${task.group}</span>
+                ${task.isDaily ? '<span class="task-badge badge-daily-lock">ROUTINE</span>' : ''}
+                ${task.isShiny ? '<span class="task-badge badge-shiny-tag">✨ SHINY</span>' : ''}
+              </div>
+              <span class="task-title">${escapeHtml(task.text)}</span>
+            </div>
+          </div>
+          <div class="task-actions">
+            <button class="task-delete-btn" title="Abandon Bounty">&times;</button>
+          </div>
+        `;
+
+        card.querySelector('.pokeball-check').addEventListener('click', () => {
+          task.completed = !task.completed;
+          if (task.completed) {
+            recordCaughtPokemon(task.pokemonId, task.pokemonName, task.isShiny, 'task');
+          }
+          saveTasks();
+          renderTasks();
+        });
+
+        card.querySelector('.task-delete-btn').addEventListener('click', () => {
+          tasks = tasks.filter(t => t.id !== task.id);
+          saveTasks();
+          renderTasks();
+        });
+
+        list.appendChild(card);
+      });
+    }
+
+    document.getElementById('addTaskBtn').addEventListener('click', () => {
+      const input = document.getElementById('taskTextInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const group = document.getElementById('taskGroupSelect').value || 'General';
+      const isDaily = document.getElementById('taskDailyToggle').checked;
+
+      const pokemonId = Math.floor(Math.random() * NATIONAL_DEX_MAX) + 1;
+      const isShiny = Math.floor(Math.random() * SHINY_CHANCE) === 0;
+
+      tasks.unshift({
+        id: Date.now().toString(),
+        text,
+        group,
+        isDaily,
+        pokemonId,
+        pokemonName: `Specimen #${pokemonId}`,
+        isShiny,
+        completed: false,
+        createdDate: getTodayKey()
+      });
+
+      input.value = '';
+      document.getElementById('taskDailyToggle').checked = false;
+      saveTasks();
+      renderTasks();
+    });
+
+    document.getElementById('newGroupBtn').addEventListener('click', () => {
+      const name = prompt("Enter new Group / Channel name:");
+      if (name && !taskGroups.includes(name.trim())) {
+        taskGroups.push(name.trim());
+        saveTasks();
+        renderGroupChips();
+      }
+    });
+
+    // --- DAILY RESONANCE & CONTEMPLATION ENGINE ---
+    const todayKey = getTodayKey();
+    let currentRecord = null;
+
+    async function loadDailyRecord() {
+      const recordKey = `syncdex_entry_${todayKey}`;
+      const raw = localStorage.getItem(recordKey);
+
+      if (raw) {
+        try {
+          currentRecord = JSON.parse(raw);
+          recordCaughtPokemon(currentRecord.pokemon.id, currentRecord.pokemon.name, false, 'resonance');
+          displayDaily(currentRecord);
+          return;
+        } catch(e) {}
+      }
+
+      let chosenQuote = null;
+      let companionPokemon = null;
+
+      // 1. Try remote fetch
+      try {
+        const skip = Math.floor(Math.random() * 1400);
+        const res = await fetch(`https://dummyjson.com/quotes?limit=1&skip=${skip}`, { cache: 'no-cache' });
+        const data = await res.json();
+        if (data && data.quotes && data.quotes[0]) {
+          const q = data.quotes[0];
+          const unassignedId = getUnseenPokemonId();
+          chosenQuote = {
+            quote: q.quote,
+            author: q.author,
+            source: "World Literature",
+            tradition: "Universal",
+            region: "Global",
+            context: "Synchronized from the global codex archive.",
+            prompt: fallbackSparks[Math.floor(Math.random() * fallbackSparks.length)],
+            pokemon: { id: unassignedId, name: `Specimen #${unassignedId}` }
+          };
+        }
+      } catch(err) {}
+
+      // 2. Offline fallback to 32 Core Canon
+      if (!chosenQuote) {
+        const caughtSet = new Set(getCaughtLedger().map(item => item.id));
+        let availableCore = coreQuotes.filter(q => !caughtSet.has(q.pokemon.id));
+        if (availableCore.length === 0) availableCore = coreQuotes;
+        chosenQuote = availableCore[Math.floor(Math.random() * availableCore.length)];
+      }
+
+      currentRecord = {
+        date: todayKey,
+        quote: chosenQuote,
+        pokemon: chosenQuote.pokemon,
+        prompt: chosenQuote.prompt || fallbackSparks[0],
+        note: localStorage.getItem(`syncdex_note_${todayKey}`) || ''
+      };
+
+      recordCaughtPokemon(currentRecord.pokemon.id, currentRecord.pokemon.name, false, 'resonance');
+      localStorage.setItem(recordKey, JSON.stringify(currentRecord));
+      displayDaily(currentRecord);
+      checkBackupMilestone();
+    }
+
+    function displayDaily(rec) {
+      const q = rec.quote;
+      const p = rec.pokemon;
+
+      document.getElementById('todayDate').textContent = rec.date.replace(/-/g, '.');
+      document.getElementById('quotePhil').textContent = q.tradition || "PHILOSOPHY";
+      document.getElementById('quoteRegion').textContent = q.region || "GLOBAL";
+      document.getElementById('quoteText').textContent = `"${q.quote}"`;
+      document.getElementById('quoteAuthor').textContent = q.author;
+      document.getElementById('quoteSource').textContent = q.source || "Canon Archive";
+      document.getElementById('quoteContext').textContent = q.context || "Archived in the trainer log.";
+
+      document.getElementById('dailyPokemonNum').textContent = `#${String(p.id).padStart(4, '0')} // REGISTERED`;
+      document.getElementById('dailyPokemonName').textContent = p.name;
+      document.getElementById('dailyPokemonSprite').src = getSpriteUrl(p.id);
+
+      document.getElementById('promptSparkText').textContent = rec.prompt || fallbackSparks[0];
+      const textarea = document.getElementById('reflectionInput');
+      textarea.value = rec.note || '';
+    }
+
+    const textarea = document.getElementById('reflectionInput');
+    const saveStatus = document.getElementById('saveStatus');
+    let autoSaveTimer;
+
+    textarea.addEventListener('input', () => {
+      saveStatus.textContent = 'SAVING...';
+      saveStatus.style.opacity = '1';
+      clearTimeout(autoSaveTimer);
+
+      autoSaveTimer = setTimeout(() => {
+        if (currentRecord) {
+          currentRecord.note = textarea.value;
+          localStorage.setItem(`syncdex_entry_${todayKey}`, JSON.stringify(currentRecord));
+          localStorage.setItem(`syncdex_note_${todayKey}`, textarea.value);
+        }
+        saveStatus.textContent = 'SAVED';
+        setTimeout(() => saveStatus.style.opacity = '0', 1200);
+        checkBackupMilestone();
+      }, 400);
+    });
+
+    document.getElementById('insertSparkBtn').addEventListener('click', () => {
+      const spark = document.getElementById('promptSparkText').textContent;
+      const formatted = `[Prompt Spark: ${spark}]\n\n`;
+      if (!textarea.value.includes(spark)) {
+        textarea.value = formatted + textarea.value;
+        textarea.dispatchEvent(new Event('input'));
+      }
+    });
+
+    // --- TAB SWITCHER LOGIC ---
+    const tabTasks = document.getElementById('tabTasks');
+    const tabDaily = document.getElementById('tabDaily');
+    const tabCodex = document.getElementById('tabCodex');
+
+    const viewTasks = document.getElementById('viewTasks');
+    const viewDaily = document.getElementById('viewDaily');
+    const viewCodex = document.getElementById('viewCodex');
+
+    tabTasks.addEventListener('click', () => setActiveTab(tabTasks, viewTasks));
+    tabDaily.addEventListener('click', () => setActiveTab(tabDaily, viewDaily));
+    tabCodex.addEventListener('click', () => {
+      setActiveTab(tabCodex, viewCodex);
+      renderPcBox();
+      initCodexDeck();
+    });
+
+    function setActiveTab(btn, view) {
+      [tabTasks, tabDaily, tabCodex].forEach(b => b.classList.remove('active'));
+      [viewTasks, viewDaily, viewCodex].forEach(v => v.style.display = 'none');
+      btn.classList.add('active');
+      view.style.display = 'flex';
+    }
+
+    // --- TRAINER'S PC BOX ---
+    function renderPcBox() {
+      const grid = document.getElementById('pcBoxGrid');
+      const stats = document.getElementById('pcBoxStats');
+      if (!grid) return;
+
+      const ledger = getCaughtLedger();
+      const shinyCount = ledger.filter(i => i.isShiny).length;
+      stats.textContent = `${ledger.length} Caught • ${shinyCount} Shiny ✨`;
+
+      grid.innerHTML = '';
+      if (ledger.length === 0) {
+        grid.innerHTML = '<div style="font-family:var(--font-mono); font-size:0.7rem; color:var(--text-muted); grid-column:1/-1; text-align:center; padding:1rem 0;">PC Box Empty. Complete field tasks or reflections to register specimens!</div>';
+        return;
+      }
+
+      ledger.slice().reverse().forEach(specimen => {
+        const cell = document.createElement('div');
+        cell.className = `pc-box-cell ${specimen.isShiny ? 'shiny' : ''}`;
+        cell.title = `#${specimen.id} ${specimen.name} (${specimen.isShiny ? 'Shiny' : 'Normal'})`;
+        cell.innerHTML = `
+          <img src="${getSpriteUrl(specimen.id, specimen.isShiny)}" alt="${specimen.name}" />
+          ${specimen.isShiny ? '<span class="star-badge">✨</span>' : ''}
+        `;
+        grid.appendChild(cell);
+      });
+    }
+
+    // --- INFINITE AUTO-LOADING CODEX DECK (+20 ON SCROLL) ---
+    let deckQuotes = [];
+    let isFetchingMore = false;
+    const deckCarousel = document.getElementById('deckCarousel');
+    const deckCounter = document.getElementById('deckCounter');
+    const deckStatus = document.getElementById('deckStatus');
+
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function initCodexDeck() {
+      if (deckQuotes.length > 0) return;
+      deckQuotes = shuffleArray(coreQuotes);
+      deckCarousel.innerHTML = '';
+      appendBatchToDeck(deckQuotes, 0);
+      fetchOnlineDeckBatch(25);
+    }
+
+    async function fetchOnlineDeckBatch(batchSize = 20) {
+      if (isFetchingMore) return;
+      isFetchingMore = true;
+      deckStatus.textContent = "SYNCHRONIZING WORLD ARCHIVES...";
+
+      try {
+        const randomSkip = Math.floor(Math.random() * 1400);
+        const res = await fetch(`https://dummyjson.com/quotes?limit=${batchSize}&skip=${randomSkip}`, { cache: 'no-cache' });
+        const data = await res.json();
+        if (data && data.quotes && data.quotes.length > 0) {
+          const apiFormatted = data.quotes.map(q => {
+            const randPokemonId = Math.floor(Math.random() * NATIONAL_DEX_MAX) + 1;
+            return {
+              quote: q.quote,
+              author: q.author,
+              source: "World Literature",
+              tradition: "Universal",
+              region: "Global",
+              context: "Recorded in the global codex archive.",
+              prompt: fallbackSparks[Math.floor(Math.random() * fallbackSparks.length)],
+              pokemon: { id: randPokemonId, name: `Specimen #${randPokemonId}` }
+            };
+          });
+
+          const startIndex = deckQuotes.length;
+          deckQuotes.push(...apiFormatted);
+          appendBatchToDeck(apiFormatted, startIndex);
+          deckStatus.textContent = "WORLD ARCHIVES READY";
+        }
+      } catch (err) {
+        deckStatus.textContent = "OFFLINE ARCHIVES ACTIVE";
+      } finally {
+        isFetchingMore = false;
+        updateDeckIndicator();
+      }
+    }
+
+    function appendBatchToDeck(quotesArray, offsetIndex) {
+      quotesArray.forEach((q, i) => {
+        const globalIdx = offsetIndex + i;
+        const p = q.pokemon;
+
+        const card = document.createElement('div');
+        card.className = 'swipe-card';
+        card.innerHTML = `
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+              <div class="badge-group">
+                <span class="type-badge badge-phil">${q.tradition || 'PHILOSOPHY'}</span>
+                <span class="type-badge badge-region">${q.region || 'WORLD'}</span>
+              </div>
+              <span style="font-family:var(--font-mono); font-size:0.68rem; color:var(--accent-yellow);">#${String(p.id).padStart(4, '0')}</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.6rem; background:rgba(0,0,0,0.25); padding:0.4rem 0.6rem; border-radius:6px; margin-bottom:0.75rem;">
+              <img src="${getSpriteUrl(p.id)}" style="width:36px; height:36px; image-rendering:pixelated;" alt="${p.name}">
+              <span style="font-family:var(--font-mono); font-size:0.75rem; font-weight:700; text-transform:uppercase;">${p.name}</span>
+            </div>
+            <div style="font-size:1.1rem; font-weight:600; font-style:italic; line-height:1.55; margin-bottom:0.75rem;">"${q.quote}"</div>
+            <div style="font-size:0.85rem; color:var(--text-muted); border-left:2px solid var(--accent-red); padding-left:0.6rem;">${q.author}</div>
+          </div>
+          <button class="btn btn-accent" style="align-self:flex-start; margin-top:1rem;">Reflect on this &rarr;</button>
+        `;
+
+        card.querySelector('button').addEventListener('click', () => {
+          currentRecord = {
+            date: todayKey,
+            quote: q,
+            pokemon: p,
+            prompt: q.prompt || fallbackSparks[0],
+            note: textarea.value
+          };
+          recordCaughtPokemon(p.id, p.name, false, 'resonance');
+          localStorage.setItem(`syncdex_entry_${todayKey}`, JSON.stringify(currentRecord));
+          displayDaily(currentRecord);
+          tabDaily.click();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        deckCarousel.appendChild(card);
+      });
+      updateDeckIndicator();
+    }
+
+    function updateDeckIndicator() {
+      if (!deckQuotes.length) return;
+      const cardWidth = deckCarousel.offsetWidth || 1;
+      const currentIndex = Math.round(deckCarousel.scrollLeft / cardWidth) + 1;
+      const total = deckQuotes.length;
+      deckCounter.textContent = `${Math.min(currentIndex, total)} / ${total}`;
+
+      // Infinite scroll trigger: when within 4 cards of end, load 20 more
+      if (currentIndex >= total - 4 && !isFetchingMore) {
+        fetchOnlineDeckBatch(20);
+      }
+    }
+
+    deckCarousel.addEventListener('scroll', updateDeckIndicator);
+
+    // --- SEARCH & FILTER IN PAST LOGS ---
+    const historyBtn = document.getElementById('toggleHistoryBtn');
+    const historyDrawer = document.getElementById('historyDrawer');
+    const historySearch = document.getElementById('historySearch');
+    const historyFeed = document.getElementById('historyFeed');
+
+    historyBtn.addEventListener('click', () => {
+      if (historyDrawer.style.display === 'none') {
+        renderHistory();
+        historyDrawer.style.display = 'flex';
+        historyBtn.textContent = 'Hide Past Logs';
+      } else {
+        historyDrawer.style.display = 'none';
+        historyBtn.textContent = 'View Past Logs';
+      }
+    });
+
+    historySearch.addEventListener('input', renderHistory);
+
+    function getAllLogs() {
+      const records = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith('syncdex_entry_')) {
+          try {
+            const parsed = JSON.parse(localStorage.getItem(key));
+            if (parsed && parsed.note && parsed.note.trim()) records.push(parsed);
+          } catch(e) {}
+        }
+      }
+      return records.sort((a, b) => b.date.localeCompare(a.date));
+    }
+
+    function renderHistory() {
+      historyFeed.innerHTML = '';
+      const q = historySearch.value.toLowerCase().trim();
+      const logs = getAllLogs().filter(r =>
+        r.date.includes(q) ||
+        r.quote.quote.toLowerCase().includes(q) ||
+        r.quote.author.toLowerCase().includes(q) ||
+        r.note.toLowerCase().includes(q) ||
+        (r.pokemon && r.pokemon.name.toLowerCase().includes(q))
+      );
+
+      if (logs.length === 0) {
+        historyFeed.innerHTML = '<div style="font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted); padding:0.5rem 0;">No matching log records found.</div>';
+        return;
+      }
+
+      logs.forEach(rec => {
+        const p = rec.pokemon || { id: 212, name: "Companion" };
+        const item = document.createElement('div');
+        item.className = 'history-item';
+        item.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+            <span style="font-family:var(--font-mono); font-size:0.7rem; color:var(--text-muted);">${rec.date}</span>
+            <div style="display:flex; align-items:center; gap:0.4rem;">
+              <span style="font-family:var(--font-mono); font-size:0.68rem; color:var(--accent-yellow);">#${p.id} ${p.name}</span>
+              <img src="${getSpriteUrl(p.id)}" style="width:24px; height:24px; image-rendering:pixelated;" alt="${p.name}">
+            </div>
+          </div>
+          <div style="font-style:italic; font-size:0.8rem; margin-bottom:0.4rem; color:#c9d1d9;">"${rec.quote.quote}" &mdash; ${rec.quote.author}</div>
+          <div style="font-size:0.82rem; white-space:pre-wrap; border-top:1px solid var(--border-subtle); padding-top:0.4rem;">${escapeHtml(rec.note)}</div>
+        `;
+        historyFeed.appendChild(item);
+      });
+    }
+
+    // --- BACKUP MILESTONE CHECK ---
+    function checkBackupMilestone() {
+      const records = getAllLogs();
+      const lastBackupCount = parseInt(localStorage.getItem('syncdex_last_backup_count') || '0', 10);
+      const banner = document.getElementById('backupAlertBanner');
+      const text = document.getElementById('backupAlertText');
+
+      if (records.length >= lastBackupCount + 15) {
+        text.textContent = `TRAINER'S LOG: ${records.length - lastBackupCount} entries written since last backup!`;
+        banner.style.display = 'flex';
+      } else {
+        banner.style.display = 'none';
+      }
+    }
+
+    document.getElementById('alertExportBtn').addEventListener('click', () => {
+      document.getElementById('exportJsonOption').click();
+    });
+
+    // --- EXPORT & IMPORT ENGINES ---
+    const exportModal = document.getElementById('exportModal');
+    document.getElementById('openExportModalBtn').addEventListener('click', () => exportModal.style.display = 'flex');
+    document.getElementById('closeModalBtn').addEventListener('click', () => exportModal.style.display = 'none');
+    window.addEventListener('click', (e) => { if (e.target === exportModal) exportModal.style.display = 'none'; });
+
+    // 1. Unified JSON Backup
+    document.getElementById('exportJsonOption').addEventListener('click', () => {
+      exportModal.style.display = 'none';
+      const logs = getAllLogs();
+      const backupData = {
+        app: "SyncDex",
+        version: "2.0",
+        exportDate: getTodayKey(),
+        tasks,
+        taskGroups,
+        caughtLedger: getCaughtLedger(),
+        logs
+      };
+
+      localStorage.setItem('syncdex_last_backup_count', String(logs.length));
+      checkBackupMilestone();
+
+      const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+      downloadFile(blob, `syncdex-backup-${todayKey}.json`);
+    });
+
+    // 2. Word Document Export (.doc)
+    document.getElementById('exportWordOption').addEventListener('click', () => {
+      exportModal.style.display = 'none';
+      const logs = getAllLogs();
+      const completedTasks = tasks.filter(t => t.completed);
+
+      let docHtml = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset='utf-8'><title>SyncDex Operational Report</title>
+        <style>
+          body { font-family: Calibri, sans-serif; font-size: 11pt; line-height: 1.5; color: #111; }
+          .header-box { border-bottom: 2pt solid #ea384d; padding-bottom: 8pt; margin-bottom: 16pt; }
+          .title { font-size: 18pt; font-weight: bold; color: #0f1217; }
+          .entry-card { margin-bottom: 18pt; padding-bottom: 12pt; border-bottom: 0.5pt solid #ddd; }
+          .entry-date { font-weight: bold; color: #ea384d; font-size: 10pt; }
+        </style>
+        </head>
+        <body>
+          <div class="header-box">
+            <div class="title">SYNCDEX // FIELD REPORT & LOG</div>
+            <div style="font-size: 9pt; color:#666;">Exported: ${todayKey} &bull; Trainer OS DCA</div>
+          </div>
+          <h3>COMPLETED FIELD BOUNTIES (${completedTasks.length})</h3>
+          <ul>
+      `;
+
+      completedTasks.forEach(t => {
+        docHtml += `<li><strong>${escapeHtml(t.text)}</strong> (${t.group}) &mdash; Caught: #${t.pokemonId} ${t.pokemonName} ${t.isShiny ? '✨ (Shiny)' : ''}</li>`;
+      });
+      docHtml += `</ul><br/><h3>TRAINER'S CONTEMPLATIVE LOGS (${logs.length})</h3>`;
+
+      logs.forEach(r => {
+        const p = r.pokemon || { id: 212, name: "Companion" };
+        docHtml += `
+          <div class="entry-card">
+            <div class="entry-date">${r.date} &bull; Companion: #${p.id} ${p.name}</div>
+            <p><em>"${escapeHtml(r.quote.quote)}"</em> &mdash; <strong>${escapeHtml(r.quote.author)}</strong></p>
+            <div style="white-space:pre-wrap;">${escapeHtml(r.note)}</div>
+          </div>
+        `;
+      });
+
+      docHtml += `</body></html>`;
+      const blob = new Blob(['\ufeff', docHtml], { type: 'application/msword' });
+      downloadFile(blob, `syncdex-report-${todayKey}.doc`);
+    });
+
+    // 3. Print-to-PDF Export
+    document.getElementById('exportPdfOption').addEventListener('click', () => {
+      exportModal.style.display = 'none';
+      const logs = getAllLogs();
+      const completedTasks = tasks.filter(t => t.completed);
+
+      let printHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>SyncDex - Operational Log (${todayKey})</title>
+          <style>
+            @page { margin: 1.5cm; size: auto; }
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #111; background: #fff; line-height: 1.6; }
+            .print-header { display: flex; justify-content: space-between; border-bottom: 2px solid #ea384d; padding-bottom: 10px; margin-bottom: 20px; }
+            .entry { margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid #e1e4e8; page-break-inside: avoid; }
+            .entry-meta { display: flex; justify-content: space-between; font-size: 11px; font-family: monospace; color: #586069; }
+            .quote-box { border-left: 3px solid #388bea; padding-left: 12px; margin: 8px 0; font-style: italic; }
+            .note { margin-top: 8px; font-size: 13px; white-space: pre-wrap; }
+          </style>
+        </head>
+        <body>
+          <div class="print-header">
+            <div>
+              <h1 style="margin:0; font-size:20px;">SYNCDEX // FIELD LOG</h1>
+              <div style="font-size:10px; color:#586069;">Trainer OS DCA</div>
+            </div>
+            <span style="font-family:monospace; font-size:11px;">Exported: ${todayKey}</span>
+          </div>
+          <div style="margin-bottom:20px;">
+            <h3 style="font-size:13px; text-transform:uppercase; margin-bottom:6px;">Cleared Quests (${completedTasks.length})</h3>
+            <ul style="font-size:12px; line-height:1.4;">
+      `;
+
+      completedTasks.forEach(t => {
+        printHtml += `<li><strong>${escapeHtml(t.text)}</strong> &bull; #${t.pokemonId} ${t.pokemonName} ${t.isShiny ? '✨' : ''}</li>`;
+      });
+
+      printHtml += `</ul></div><h3 style="font-size:13px; text-transform:uppercase; margin-bottom:12px;">Trainer's Journal</h3>`;
+
+      logs.forEach(r => {
+        const p = r.pokemon || { id: 212, name: "Companion" };
+        printHtml += `
+          <div class="entry">
+            <div class="entry-meta">
+              <span><strong>${r.date}</strong> &bull; #${p.id} ${p.name}</span>
+              <span>${escapeHtml(r.quote.tradition || '')}</span>
+            </div>
+            <div class="quote-box">"${escapeHtml(r.quote.quote)}" &mdash; ${escapeHtml(r.quote.author)}</div>
+            <div class="note">${escapeHtml(r.note)}</div>
+          </div>
+        `;
+      });
+
+      printHtml += `
+        <script>
+          window.onload = function() { window.print(); window.onafterprint = function() { window.close(); }; };
+        <\/script>
+        </body></html>
+      `;
+
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.open();
+        printWindow.document.write(printHtml);
+        printWindow.document.close();
+      }
+    });
+
+    // 4. Strict JSON Import
+    const fileImportInput = document.getElementById('fileImportInput');
+    document.getElementById('importBtn').addEventListener('click', () => fileImportInput.click());
+
+    fileImportInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const data = JSON.parse(event.target.result);
+          if (data.tasks) {
+            tasks = data.tasks;
+            saveTasks();
+          }
+          if (data.taskGroups) {
+            taskGroups = data.taskGroups;
+            saveTasks();
+          }
+          if (data.caughtLedger) {
+            localStorage.setItem('syncdex_caught_ledger', JSON.stringify(data.caughtLedger));
+          }
+          if (data.logs && Array.isArray(data.logs)) {
+            data.logs.forEach(r => {
+              localStorage.setItem(`syncdex_entry_${r.date}`, JSON.stringify(r));
+              localStorage.setItem(`syncdex_note_${r.date}`, r.note);
+            });
+          }
+
+          loadTasks();
+          renderGroupChips();
+          renderTasks();
+          renderPcBox();
+          updateDexTrackerUI();
+          loadDailyRecord();
+          alert("SyncDex archive successfully restored!");
+        } catch(err) {
+          alert("Import failed: please select a valid SyncDex .json backup file.");
+        } finally {
+          fileImportInput.value = '';
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    function downloadFile(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function escapeHtml(text) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return String(text).replace(/[&<>"']/g, m => map[m]);
+    }
+
+    // --- APP INITIALIZATION ---
+    loadTasks();
+    renderGroupChips();
+    renderTasks();
+    updateDexTrackerUI();
+    loadDailyRecord();
+  </script>
+</body>
+</html>
