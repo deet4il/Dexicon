@@ -1420,36 +1420,41 @@
         } catch(e) {}
       }
 
-      let chosenQuote = null;
-      let companionPokemon = null;
+            let chosenQuote = null;
+      const caughtSet = new Set(getCaughtLedger().map(item => item.id));
 
-      // 1. Try remote fetch
-      try {
-        const skip = Math.floor(Math.random() * 1400);
-        const res = await fetch(`https://dummyjson.com/quotes?limit=1&skip=${skip}`, { cache: 'no-cache' });
-        const data = await res.json();
-        if (data && data.quotes && data.quotes[0]) {
-          const q = data.quotes[0];
-          const unassignedId = getUnseenPokemonId();
-          chosenQuote = {
-            quote: q.quote,
-            author: q.author,
-            source: "World Literature",
-            tradition: "Universal",
-            region: "Global",
-            context: "Synchronized from the global codex archive.",
-            prompt: fallbackSparks[Math.floor(Math.random() * fallbackSparks.length)],
-            pokemon: { id: unassignedId, name: `Specimen #${unassignedId}` }
-          };
-        }
-      } catch(err) {}
-
-      // 2. Offline fallback to 32 Core Canon
-      if (!chosenQuote) {
-        const caughtSet = new Set(getCaughtLedger().map(item => item.id));
-        let availableCore = coreQuotes.filter(q => !caughtSet.has(q.pokemon.id));
-        if (availableCore.length === 0) availableCore = coreQuotes;
+      // 1. PRIMARY: Pick from the hand-curated 32 Core Canon first (No repeats)
+      const availableCore = coreQuotes.filter(q => !caughtSet.has(q.pokemon.id));
+      if (availableCore.length > 0) {
         chosenQuote = availableCore[Math.floor(Math.random() * availableCore.length)];
+      }
+
+      // 2. SECONDARY: Only reach out to web archive after all 32 core entries have been caught
+      if (!chosenQuote) {
+        try {
+          const skip = Math.floor(Math.random() * 1400);
+          const res = await fetch(`https://dummyjson.com/quotes?limit=1&skip=${skip}`, { cache: 'no-cache' });
+          const data = await res.json();
+          if (data && data.quotes && data.quotes[0]) {
+            const q = data.quotes[0];
+            const unassignedId = getUnseenPokemonId();
+            chosenQuote = {
+              quote: q.quote,
+              author: q.author,
+              source: "World Literature",
+              tradition: "Universal",
+              region: "Global",
+              context: "Synchronized from the global codex archive.",
+              prompt: fallbackSparks[Math.floor(Math.random() * fallbackSparks.length)],
+              pokemon: { id: unassignedId, name: `Specimen #${unassignedId}` }
+            };
+          }
+        } catch(err) {}
+      }
+
+      // 3. Fallback safeguard loop
+      if (!chosenQuote) {
+        chosenQuote = coreQuotes[Math.floor(Math.random() * coreQuotes.length)];
       }
 
       currentRecord = {
