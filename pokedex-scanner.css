@@ -1,0 +1,146 @@
+/* ==========================================================================
+   SyncDex - Pokédex Scanner Modal Stylesheet
+   ========================================================================== */
+
+.dex-inspect-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  padding: 1rem;
+  backdrop-filter: blur(2px);
+}
+
+.dex-scanner-card {
+  background: var(--card-bg, #161b22);
+  border: 2px solid var(--accent-red, #ea384d);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 380px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  box-shadow: 0 0 25px rgba(234, 56, 77, 0.3);
+  box-sizing: border-box;
+}
+
+.scanner-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-subtle, #30363d);
+  padding-bottom: 0.5rem;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.72rem;
+  color: var(--text-muted, #8b949e);
+  letter-spacing: 0.05em;
+}
+
+.scanner-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted, #8b949e);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0.2rem;
+}
+.scanner-close-btn:hover {
+  color: var(--text-main, #f0f6fc);
+}
+
+.scanner-visual-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: #0d1117;
+  border: 1px solid var(--border-subtle, #30363d);
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.scanner-sprite-frame {
+  width: 64px;
+  height: 64px;
+  background: #161b22;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid var(--border-subtle, #30363d);
+}
+
+.scanner-sprite-frame img {
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  transition: filter 0.2s ease, opacity 0.2s ease;
+}
+
+.scanner-sprite-frame img.locked-silhouette {
+  filter: brightness(0) contrast(100%);
+  opacity: 0.35;
+}
+
+.scanner-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.scanner-dex-id {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.7rem;
+  color: var(--accent-yellow, #f1b738);
+}
+
+.scanner-name {
+  font-family: var(--font-mono, monospace);
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-main, #f0f6fc);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.scanner-genus {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.65rem;
+  color: var(--text-muted, #8b949e);
+  text-transform: uppercase;
+}
+
+.scanner-readout-screen {
+  background: #0d1117;
+  border: 1px solid var(--border-subtle, #30363d);
+  border-radius: 6px;
+  padding: 0.85rem;
+  font-family: var(--font-sans, sans-serif);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: #c9d1d9;
+  min-height: 85px;
+}
+
+.scanner-readout-screen.locked-screen {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.7rem;
+  color: var(--accent-red, #ea384d);
+  background: rgba(234, 56, 77, 0.06);
+  border-color: rgba(234, 56, 77, 0.35);
+}
+
+/* Make all sprites afford a clickable pointer */
+.task-sprite-box,
+.pc-box-cell,
+.pokemon-companion-bar > div:first-child {
+  cursor: pointer;
+}
