@@ -83,8 +83,8 @@
     spriteImg.classList.remove('locked-silhouette');
     readoutEl.className = 'scanner-readout-screen';
 
-    // If caughtEntry has a clean name, use it as baseline
-    if (caughtEntry.name && !caughtEntry.name.startsWith('Specimen #')) {
+    // If caughtEntry has a clean species name, use it as baseline
+    if (caughtEntry.name && !caughtEntry.name.startsWith('Specimen #') && !caughtEntry.name.includes(' ')) {
       nameEl.textContent = caughtEntry.name;
     }
 
@@ -94,11 +94,15 @@
       dexCache = JSON.parse(localStorage.getItem('syncdex_dex_cache')) || {};
     } catch (e) {}
 
-    if (dexCache[id]) {
-      nameEl.textContent = dexCache[id].name || nameEl.textContent;
+    // Auto-purge any corrupted cache entry where a task description was stored instead of a species name
+    if (dexCache[id] && dexCache[id].name && dexCache[id].name.length < 35 && !dexCache[id].name.includes(' ')) {
+      nameEl.textContent = dexCache[id].name;
       genusEl.textContent = dexCache[id].genus || 'REGISTERED SPECIES';
       readoutEl.textContent = dexCache[id].flavorText;
       return;
+    } else if (dexCache[id]) {
+      delete dexCache[id];
+      localStorage.setItem('syncdex_dex_cache', JSON.stringify(dexCache));
     }
 
     // Live fetch if online and uncached
@@ -149,7 +153,7 @@
         const match = img && img.src.match(/\/(\d+)\.png/);
         const id = match ? parseInt(match[1], 10) : null;
         const isShiny = card.classList.contains('shiny');
-        const altName = (img && img.alt && !img.alt.startsWith('Specimen #')) ? img.alt : '';
+        const altName = (img && img.alt && !img.alt.startsWith('Specimen #') && !img.alt.includes(' ')) ? img.alt : '';
         if (id) inspectPokemon(id, altName, isShiny);
       }
       return;
@@ -162,7 +166,7 @@
       const match = img && img.src.match(/\/(\d+)\.png/);
       const id = match ? parseInt(match[1], 10) : null;
       const isShiny = pcCell.classList.contains('shiny');
-      const altName = img ? img.alt : '';
+      const altName = (img && img.alt && !img.alt.startsWith('Specimen #') && !img.alt.includes(' ')) ? img.alt : '';
       if (id) inspectPokemon(id, altName, isShiny);
       return;
     }
@@ -172,9 +176,9 @@
     if (dailyImg) {
       const match = dailyImg.src.match(/\/(\d+)\.png/);
       const id = match ? parseInt(match[1], 10) : null;
-      const nameEl = document.getElementById('dailyPokemonName');
-      const name = nameEl ? nameEl.textContent : '';
-      if (id) inspectPokemon(id, name, false);
+      const companionNameEl = document.getElementById('dailyPokemonName');
+      const companionName = companionNameEl ? companionNameEl.textContent : '';
+      if (id) inspectPokemon(id, companionName, false);
     }
   });
 
