@@ -1,4 +1,4 @@
-const CACHE_NAME = 'syncdex-v3.1-scanner';
+const CACHE_NAME = 'syncdex-v3.2-scanner';
 
 // Core local assets required for full offline functionality
 const ASSETS_TO_CACHE = [
