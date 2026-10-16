@@ -52,9 +52,8 @@
     if (!id || id <= 0) return;
     modal.style.display = 'flex';
 
-    const cleanName = fallbackName || `Specimen #${id}`;
     dexIdEl.textContent = `#${String(id).padStart(4, '0')}`;
-    nameEl.textContent = cleanName;
+    nameEl.textContent = fallbackName || `SPECIMEN #${id}`;
     spriteImg.src = isShiny
       ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${id}.png`
       : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
@@ -65,11 +64,12 @@
       caughtLedger = JSON.parse(localStorage.getItem('syncdex_caught_ledger')) || [];
     } catch (e) {}
 
-    const isCaught = caughtLedger.some((item) => Number(item.id) === Number(id));
+    const caughtEntry = caughtLedger.find((item) => Number(item.id) === Number(id));
 
-    if (!isCaught) {
+    if (!caughtEntry) {
       // LOCKED: Specimen not yet caught
       spriteImg.classList.add('locked-silhouette');
+      nameEl.textContent = 'UNKNOWN SPECIMEN';
       genusEl.textContent = 'UNCATALOGED SPECIMEN';
       readoutEl.className = 'scanner-readout-screen locked-screen';
       readoutEl.innerHTML = `
@@ -83,6 +83,11 @@
     spriteImg.classList.remove('locked-silhouette');
     readoutEl.className = 'scanner-readout-screen';
 
+    // If caughtEntry has a clean name, use it as baseline
+    if (caughtEntry.name && !caughtEntry.name.startsWith('Specimen #')) {
+      nameEl.textContent = caughtEntry.name;
+    }
+
     // Check Local Pokédex Cache
     let dexCache = {};
     try {
@@ -90,6 +95,7 @@
     } catch (e) {}
 
     if (dexCache[id]) {
+      nameEl.textContent = dexCache[id].name || nameEl.textContent;
       genusEl.textContent = dexCache[id].genus || 'REGISTERED SPECIES';
       readoutEl.textContent = dexCache[id].flavorText;
       return;
@@ -104,19 +110,26 @@
       if (!res.ok) throw new Error('API unavailable');
       const data = await res.json();
 
+      // Extract official English Pokémon species name
+      let officialName = data.name.toUpperCase();
+      const nameObj = data.names && data.names.find((n) => n.language.name === 'en');
+      if (nameObj) officialName = nameObj.name.toUpperCase();
+
       let genus = 'REGISTERED SPECIES';
-      const genusObj = data.genera.find((g) => g.language.name === 'en');
+      const genusObj = data.genera && data.genera.find((g) => g.language.name === 'en');
       if (genusObj) genus = genusObj.genus;
 
       let flavorText = 'Biological telemetry successfully registered in local Pokédex memory.';
-      const flavorObj = data.flavor_text_entries.find((f) => f.language.name === 'en');
+      const flavorObj = data.flavor_text_entries && data.flavor_text_entries.find((f) => f.language.name === 'en');
       if (flavorObj) {
         flavorText = flavorObj.flavor_text.replace(/[\f\n\r]/g, ' ');
       }
 
-      dexCache[id] = { genus, flavorText };
+      // Save complete entry with verified species name into cache
+      dexCache[id] = { name: officialName, genus, flavorText };
       localStorage.setItem('syncdex_dex_cache', JSON.stringify(dexCache));
 
+      nameEl.textContent = officialName;
       genusEl.textContent = genus;
       readoutEl.textContent = flavorText;
     } catch (err) {
@@ -125,7 +138,7 @@
     }
   }
 
-  // 3. Global Event Delegation (Intercepts sprite clicks everywhere without modifying card loops)
+  // 3. Global Event Delegation
   document.addEventListener('click', (e) => {
     // A: Click on a Field Task Sprite
     const taskBox = e.target.closest('.task-sprite-box');
@@ -135,9 +148,9 @@
         const img = taskBox.querySelector('img');
         const match = img && img.src.match(/\/(\d+)\.png/);
         const id = match ? parseInt(match[1], 10) : null;
-        const titleEl = card.querySelector('.task-title');
         const isShiny = card.classList.contains('shiny');
-        if (id) inspectPokemon(id, titleEl ? titleEl.textContent : '', isShiny);
+        const altName = (img && img.alt && !img.alt.startsWith('Specimen #')) ? img.alt : '';
+        if (id) inspectPokemon(id, altName, isShiny);
       }
       return;
     }
@@ -165,6 +178,6 @@
     }
   });
 
-  // Expose function globally if ever needed manually
+  // Expose function globally
   window.inspectPokemon = inspectPokemon;
 })();
